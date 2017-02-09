@@ -13,7 +13,8 @@ if sys.version_info[0] >= 3:
     raw_input = input
 
 tokens = (
-    'NAME', 'NUMBER',
+    # RESERVED
+    'auto', 'break' , 'case' , ''
 )
 
 literals = ['=', '+', '-', '*', '/', '(', ')']
