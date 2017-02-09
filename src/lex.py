@@ -22,7 +22,6 @@ tokens = (
 
 # Tokens
 
-t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
 t_AUTO = r'AUTO'
 t_BREAK = r'BREAK'
 t_CASE = r'CASE'
@@ -56,6 +55,55 @@ t_VOID = r'VOID'
 t_VOLATILE = r'VOLATILE'
 t_WHILE = r'WHILE'
 
+t_ELLIPSIS = r'\.\.\.'
+t_RIGHT_ASSIGN = r'>>='
+t_LEFT_ASSIGN = r'<<='
+t_ADD_ASIGN = r'\+='
+t_SUB_ASSIGN = r'-='
+t_MUL_ASSIGN = r'\*='
+t_DIV_ASSIGN = r'/='
+t_MOD_ASSIGN = r'%='
+t_AND_ASSIGN = r'&='
+t_XOR_ASSIGN = r'\^='
+t_OR_ASSIGN = r'\|='
+t_RIGHT_OP = r'>>'
+t_LEFT_OP = r'<<'
+t_INC_OP = r'\+\+'
+t_DEC_OP = r'--'
+t_PTR_OP = r'->'
+t_AND_OP = r'&&'
+t_OP_OP = r'\|\|'
+t_LE_OP = r'<='
+t_GE_OP = r'>='
+t_EQ_OP = r'=='
+t_NE_OP = r'!='
+t_SEMICOLON = r';'
+t_OPEN_CURLY = r'\{'
+t_CLOSE_CURLY = r'\}'
+t_COMMA = r','
+t_COLON = r':'
+t_EQUAL = r'='
+t_OPEN_PAR = r'\('
+t_CLOSE_PAR = r'\)'
+t_OPEN_SQUARE = r'\['
+t_CLOSE_SQUARE = r']'
+t_DOT = r'.'
+t_AND = r'&'
+t_EXCLAIM = r'!'
+t_NOT = r'~'
+t_MINUS = r'-'
+t_PLUS = r'\+'
+t_MUL = r'\*'
+t_DIVIDE = r'/'
+t_MOD = r'%'
+t_LESS_THAN = r'<'
+t_GREATER_THAN = r'>'
+t_XOR = r'\^'
+t_OR = r'\|'
+t_COND_OP = r'\?'
+
+t_ignore = " \t\v\n\f"
+
 
 
 def t_NUMBER(t):
@@ -63,7 +111,7 @@ def t_NUMBER(t):
     t.value = int(t.value)
     return t
 
-t_ignore = " \t\v\n\f"
+
 
 
 def t_newline(t):
