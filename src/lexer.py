@@ -117,8 +117,8 @@ def t_ID(t):
 def t_SCONST(t):
     r'L?\"(\\.|[^\\"])*\"'
 
-def t_CONSTANT(t):
-    r'(0[xX]{H}+{IS}?)|(0{D}+{IS}?)|({D}+{IS}?)|({D}+{E}{FS}?)|({D}*"."{D}+({E})?{FS}?)|({D}+"."{D}*({E})?{FS}?)'
+# def t_CONSTANT(t):
+#     r'(0[xX]{H}+{IS}?)|(0{D}+{IS}?)|({D}+{IS}?)|({D}+{E}{FS}?)|({D}*"."{D}+({E})?{FS}?)|({D}+"."{D}*({E})?{FS}?)'
 
 def t_newline(t):
     r'\n+'
@@ -127,3 +127,8 @@ def t_newline(t):
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
+
+def t_CONSTANT(t):
+    r'\d+'
+    t.value = int(t.value)
+    return
