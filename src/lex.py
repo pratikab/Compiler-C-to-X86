@@ -1,27 +1,61 @@
-# -----------------------------------------------------------------------------
-# calc.py
-#
-# A simple calculator with variables.   This is from O'Reilly's
-# "Lex and Yacc", p. 63.
-# -----------------------------------------------------------------------------
-import pydot
-graph = pydot.Dot(graph_type='graph')
-import sys
-sys.path.insert(0, "../..")
 
-if sys.version_info[0] >= 3:
-    raw_input = input
+import pydot
 
 tokens = (
     # RESERVED
-    'auto', 'break' , 'case' , ''
+    'AUTO', 'BREAK', 'CASE', 'CHAR', 'CONST', 'CONTINUE', 'DEFAULT', 'DO', 'DOUBLE',
+    'ELSE', 'ENUM', 'EXTERN', 'FLOAT', 'FOR', 'GOTO', 'IF', 'INT', 'LONG', 'REGISTER',
+    'RETURN', 'SHORT', 'SIGNED', 'SIZEOF', 'STATIC', 'STRUCT', 'SWITCH', 'TYPEDEF',
+    'UNION', 'UNSIGNED', 'VOID', 'VOLATILE', 'WHILE',
+
+    # OPERATORS 
+    'ELLIPSIS','RIGHT_ASSIGN','LEFT_ASSIGN','ADD_ASIGN','SUB_ASSIGN','MUL_ASSIGN','DIV_ASSIGN',
+    'MOD_ASSIGN','AND_ASSIGN','XOR_ASSIGN','OR_ASSIGN','RIGHT_OP','LEFT_OP','INC_OP','DEC_OP',
+    'PTR_OP','AND_OP','OP_OP','LE_OP','GE_OP','EQ_OP','NE_OP','SEMICOLON','OPEN_CURLY','CLOSE_CURLY',
+    'COMMA','COLON','EQUAL','OPEN_PAR','CLOSE_PAR','OPEN_SQUARE','CLOSE_SQUARE','DOT','AND','EXCLAIM',
+    'NOT','MINUS','PLUS','MUL','DIVIDE','MOD','LESS_THAN','GREATER_THAN','XOR','OR','COND_OP',
+
+    # LITERALS
+    'ID','INT_CONST','FLOAT_CONST','STRING_CONSTANT','CHAR_CONST',
 )
 
-literals = ['=', '+', '-', '*', '/', '(', ')']
 
 # Tokens
 
 t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+t_AUTO = r'AUTO'
+t_BREAK = r'BREAK'
+t_CASE = r'CASE'
+t_CHAR = r'CHAR'
+t_CONST = r'CONST'
+t_CONTINUE = r'CONTINUE'
+t_DEFAULT = r'DEFAULT'
+t_DO = r'DO'
+t_DOUBLE   = r'DOUBLE'    
+t_ELSE = r'ELSE'
+t_ENUM = r'ENUM'
+t_EXTERN = r'EXTERN'
+t_FLOAT = r'FLOAT'
+t_FOR = r'FOR'
+t_GOTO = r'GOTO'
+t_IF = r'IF'
+t_INT = r'INT'
+t_LONG = r'LONG'
+t_REGISTER = r'REGISTER'
+t_RETURN = r'RETURN'
+t_SHORT = r'SHORT'
+t_SIGNED = r'SIGNED'
+t_SIZEOF = r'SIZEOF'
+t_STATIC = r'STATIC'
+t_STRUCT = r'STRUCT'
+t_SWITCH = r'SWITCH'
+t_TYPEDEF = r'TYPEDEF'
+t_UNION = r'UNION'
+t_UNSIGNED = r'UNSIGNED'
+t_VOID = r'VOID'
+t_VOLATILE = r'VOLATILE'
+t_WHILE = r'WHILE'
+
 
 
 def t_NUMBER(t):
@@ -29,7 +63,7 @@ def t_NUMBER(t):
     t.value = int(t.value)
     return t
 
-t_ignore = " \t"
+t_ignore = " \t\v\n\f"
 
 
 def t_newline(t):
@@ -45,87 +79,3 @@ def t_error(t):
 import ply.lex as lex
 
 lex.lex()
-
-# Parsing rules
-
-precedence = (
-    ('left', '+', '-'),
-    ('left', '*', '/'),
-    ('right', 'UMINUS'),
-)
-
-# dictionary of names
-names = {}
-
-
-def p_statement_assign(p):
-    'statement : NAME "=" expression'
-    names[p[1]] = p[3]
-
-
-def p_statement_expr(p):
-    'statement : expression'
-    print(p[1])
-
-
-def p_expression_binop(p):
-    '''expression : expression '+' expression
-                  | expression '-' expression
-                  | expression '*' expression
-                  | expression '/' expression'''
-    if p[2] == '+':
-        p[0] = p[1] + p[3]
-    elif p[2] == '-':
-        p[0] = p[1] - p[3]
-    elif p[2] == '*':
-        p[0] = p[1] * p[3]
-    elif p[2] == '/':
-        p[0] = p[1] / p[3]
-    edge = pydot.Edge(str(p[0]),str(p[1]))
-    graph.add_edge(edge)
-    edge = pydot.Edge(str(p[0]),str(p[2]))
-    graph.add_edge(edge)
-    edge = pydot.Edge(str(p[0]),str(p[3]))
-    graph.add_edge(edge)
-
-def p_expression_uminus(p):
-    "expression : '-' expression %prec UMINUS"
-    p[0] = -p[2]
-
-
-def p_expression_group(p):
-    "expression : '(' expression ')'"
-    p[0] = p[2]
-
-
-def p_expression_number(p):
-    "expression : NUMBER"
-    p[0] = p[1]
-
-
-def p_expression_name(p):
-    "expression : NAME"
-    try:
-        p[0] = names[p[1]]
-    except LookupError:
-        print("Undefined name '%s'" % p[1])
-        p[0] = 0
-
-
-def p_error(p):
-    if p:
-        print("Syntax error at '%s'" % p.value)
-    else:
-        print("Syntax error at EOF")
-
-import ply.yacc as yacc
-yacc.yacc()
-while 1:
-    try:
-        s = raw_input('calc > ')
-    except EOFError:
-        break
-    if not s:
-        continue
-    yacc.parse(s)
-    graph.write_png('example1_graph.png')
