@@ -85,16 +85,23 @@ def t_IDENTIFIER(t):
     return t
 
 # Integer Literal
-t_ICONST = r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
+def t_ICONST(t):
+    r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
+    return t
 
 # Floating literal
-t_FCONST = r'((\d+)(\.\d+)(e(\+|-)?(\d+))? | (\d+)e(\+|-)?(\d+))([lL]|[fF])?'
-
+def t_FCONST(t): 
+    r'((\d+)(\.\d+)(e(\+|-)?(\d+))? | (\d+)e(\+|-)?(\d+))([lL]|[fF])?'
+    return t
 # String literal
-t_STRING_LITERAL = r'\"([^\\\n]|(\\.))*?\"'
+def t_STRING_LITERAL(t):
+    r'\"([^\\\n]|(\\.))*?\"'
+    return t
 
 # Character constant 'c' or L'c'
-t_CCONST = r'(L)?\'([^\\\n]|(\\.))*?\''
+def t_CCONST(t): 
+    r'(L)?\'([^\\\n]|(\\.))*?\''
+    return t
 
 def t_newline(t):
     r'\n+'
