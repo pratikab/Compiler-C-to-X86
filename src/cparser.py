@@ -21,7 +21,9 @@ def add_edge(parent,child):
 
 def p_primary_expression(p):
   '''primary_expression   : IDENTIFIER
-                          | CONSTANT
+                          | ICONST
+                          | FCONST
+                          | CCONST
                           | STRING_LITERAL
                           | '(' expression ')'
                           '''
@@ -365,7 +367,7 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
-yacc.yacc()
+yacc.yacc( start='translation_unit')
 
 while 1:
     try:
