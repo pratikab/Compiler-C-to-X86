@@ -1,6 +1,7 @@
 reserved = {
     'auto' : 'AUTO',
     'break' : 'BREAK',
+    'bool' : 'BOOL',
     'case' : 'CASE',
     'char' : 'CHAR',
     'const' : 'CONST',
@@ -77,7 +78,7 @@ t_GE_OP = r'>='
 t_EQ_OP = r'=='
 t_NE_OP = r'!='
 
-t_ignore = " \t\v\n\f"
+t_ignore = " \t\v\f"
 
 def t_IDENTIFIER(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -106,6 +107,10 @@ def t_CCONST(t):
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
+
+def t_preprocessor(t):
+    r'\#(.)*?\n'
+    t.lexer.lineno += 1
 
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])

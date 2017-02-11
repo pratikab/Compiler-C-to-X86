@@ -2,10 +2,6 @@ import ply.yacc as yacc
 from lexer import *
 import ply.lex as lex
 import sys
-sys.path.insert(0, "../..")
-
-if sys.version_info[0] >= 3:
-    raw_input = input
 lex.lex()
 
 import pydot
@@ -23,7 +19,6 @@ def add_node(p):
   return node
 
 def draw_graph(p):
-    print(len(p))
     for x in range (1,len(p)):
         add_edge(p[0],p[x])
 
@@ -99,7 +94,7 @@ def p_argument_expression_list(p):
   if len(p) == 2:
     t = [parent,p[1]]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     t = [parent,p[1],c1,p[3]]
   p[0] = parent
   draw_graph(t)
@@ -396,7 +391,7 @@ def p_init_declarator_list(p):
   if len(p) == 2:
     t = [parent,p[1]]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     t = [parent,p[1],c1,p[3]]
   draw_graph(t)
   p[0] = parent
@@ -432,6 +427,7 @@ def p_type_specifier(p):
                       | CHAR
                       | SHORT
                       | INT
+                      | BOOL
                       | LONG
                       | FLOAT
                       | DOUBLE
@@ -532,7 +528,7 @@ def p_struct_declarator_list(p):
   if len(p) == 2:
     t = [parent,p[1]]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     t = [parent,p[1],c1,p[3]]
   draw_graph(t)
   p[0] = parent
@@ -586,7 +582,7 @@ def p_enumerator_list(p):
   if len(p) == 2:
     t = [parent,p[1]]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     t = [parent,p[1],c1,p[3]]
   draw_graph(t)
   p[0] = parent
@@ -638,31 +634,23 @@ def p_direct_declarator(p):
                         | direct_declarator '(' ')'
                         '''
   parent = add_node("direct_declarator")
+  p[0] = parent
   if len(p) == 2:
     c1 = add_node(str(p[1]))
-    t = [parent,p[1]]
+    t = [parent,c1]
   elif len(p) == 4:
     if p[1] == "(":
       c1 = add_node(str(p[1]))
       c2 = add_node(str(p[3]))
       t = [parent,c1,p[2],c2]
-    elif p[2] == "[":
-      c1 = add_node(str(p[2]))
-      c2 = add_node(str(p[3]))
-      t = [parent,p[1],c1,c2]
     else:
       c1 = add_node(str(p[2]))
       c2 = add_node(str(p[3]))
       t = [parent,p[1],c1,c2]     
   else:
-    if p[2] == "[":
-      c1 = add_node(str(p[2]))
-      c2 = add_node(str(p[4]))
-      t = [parent,p[1],c1,p[3],c2]
-    elif p[2] == "(":
-      c1 = add_node(str(p[2]))
-      c2 = add_node(str(p[3]))
-      t = [parent,p[1],c1,p[3],c2]
+    c1 = add_node(str(p[2]))
+    c2 = add_node(str(p[4]))
+    t = [parent,p[1],c1,p[3],c2]
   draw_graph(t)
   p[0] = parent
 
@@ -703,7 +691,7 @@ def p_parameter_type_list(p):
   if len(p) == 2:
     t = [parent,p[1]]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     c2 = add_node(str(p[3]))
     t = [parent,p[1],c1,c2]
   draw_graph(t)
@@ -717,7 +705,7 @@ def p_parameter_list(p):
   if len(p) == 2:
     t = [parent,p[1]]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     t = [parent,p[1],c1,p[3]]
   draw_graph(t)
   p[0] = parent
@@ -744,7 +732,7 @@ def p_identifier_list(p):
     c1 = add_node(str(p[1]))
     t = [parent,c1]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     c2 = add_node(str(p[3]))
     t = [parent,p[1],c1,c2]
   draw_graph(t)
@@ -813,7 +801,7 @@ def p_initializer(p):
     t = [parent,c1,p[2],c2]
   else:
     c1 = add_node(str(p[1]))
-    c2 = add_node(str(p[3]))
+    c2 = add_node("\,")
     c3 = add_node(str(p[4]))
     t = [parent,c1,p[2],c2,c3]    
   draw_graph(t)
@@ -827,7 +815,7 @@ def p_initializer_list(p):
   if len(p) == 2:
     t = [parent,p[1]]
   else:
-    c1 = add_node(str(p[2]))
+    c1 = add_node("\,")
     t = [parent,p[1],c1,p[3]]
   draw_graph(t)
   p[0] = parent
@@ -1056,14 +1044,19 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
-yacc.yacc( start='translation_unit')
-
-while 1:
-    try:
-        s = raw_input('INPUT > ')
-    except EOFError:
-        break
-    if not s:
-        continue
-    yacc.parse(s)
-    graph.write_png('graph.png')
+if len(sys.argv) >= 2:
+  fd = sys.argv[1]
+  if len(sys.argv) == 3 :
+    fd_2 = "../test/" + sys.argv[2]
+  else : 
+    fd_2 = "../test/graph.png"
+  yacc.yacc( start='translation_unit')
+  with open (fd, "r") as myfile:
+    data=myfile.read()
+  print("File read complete")
+  yacc.parse(data)
+  print ("Parsed successfully, writing graph to" + fd_2)
+  graph.write_png(fd_2)
+  print ("Write successful")
+else :
+  print("Please provide file to be parsed")
