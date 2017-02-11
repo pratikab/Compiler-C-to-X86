@@ -7,6 +7,10 @@ Requirements
 * Install ply : ```pip install ply```
 * Install pydot : ```pip install pydot```
 
+Usage
+-----
+* For generating a parse tree ```python2 src/cparser.py ../test/test2.c```
+
 Credits
 -------
 
