@@ -1059,4 +1059,6 @@ if len(sys.argv) >= 2:
   graph.write_png(fd_2)
   print ("Write successful")
 else :
+  yacc.yacc( start='translation_unit')
+  yacc.parse("");
   print("Please provide file to be parsed")
