@@ -155,8 +155,8 @@ int main() {
 	
    printList();
 
-   while(!isEmpty()) {            
-      struct module *temp = deleteFirst();
+   while(!isEmpty()) {
+      struct module *temp = deleteFirst(4);
       printf("\nDeleted value:");
       printf("(%d,%d) ",temp->key,temp->data);
    }  
