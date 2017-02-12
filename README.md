@@ -1,5 +1,5 @@
 # CS335: Compiler Design
-Creating a c compiler for x86 machines in python
+Creating a C compiler for x86 machines in python
 
 Requirements
 ------------
@@ -21,4 +21,4 @@ Credits
 * PLY python tool for Lex and Yacc [PLY](https://github.com/dabeaz/ply)
 * PyDot library in python [PyDot](https://github.com/erocarrera/pydot)
 * PLY Examples
-* Test Examples - [Merge merge-sort](http://quiz.geeksforgeeks.org/merge-sort/), [Quick Sort](https://www.tutorialspoint.com/data_structures_algorithms/quick_sort_program_in_c.htm), [Integer Sum](https://www.programiz.com/c-programming/examples/sum-natural-numbers). [DFS](http://www.c-program-example.com/2011/10/c-program-to-implement-depth-first.html) & [Stack](http://www.programmingsimplified.com/c/data-structures/c-stack-implementation-using-array)
+* Test Examples - [merge-sort](http://quiz.geeksforgeeks.org/merge-sort/), [Quick Sort](https://www.tutorialspoint.com/data_structures_algorithms/quick_sort_program_in_c.htm), [Integer Sum](https://www.programiz.com/c-programming/examples/sum-natural-numbers). [DFS](http://www.c-program-example.com/2011/10/c-program-to-implement-depth-first.html) & [Stack](http://www.programmingsimplified.com/c/data-structures/c-stack-implementation-using-array)
