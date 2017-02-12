@@ -104,6 +104,10 @@ def t_CCONST(t):
     r'(L)?\'([^\\\n]|(\\.))*?\''
     return t
 
+def t_comment(t):
+    r'(/\*(.|\n)*?\*/)|(//(.)*\n)'
+    t.lexer.lineno += t.value.count('\n')
+
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += t.value.count("\n")
