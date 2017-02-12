@@ -9,7 +9,10 @@ Requirements
 
 Usage
 -----
-* For generating a parse tree ```python2 src/cparser.py ../test/test2.c```
+For generating parse tree on test example
+* ```cd <project-top>/src```
+* ```python2 cparser.py ../test/<filename> <graph_name.png>```
+Graph will be generated in the test directory
 
 Credits
 -------
