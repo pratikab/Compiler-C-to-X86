@@ -105,6 +105,7 @@ def p_unary_expression(p):
                         | DEC_OP unary_expression
                         | unary_operator cast_expression
                         | SIZEOF unary_expression
+                        | SIZEOF struct_or_union_specifier
                         '''
   parent = add_node("unary_expression")
   if len(p) == 2:
@@ -858,6 +859,9 @@ def p_compound_statement(p):
                           | '{' statement_list '}'
                           | '{' declaration_list '}'
                           | '{' declaration_list statement_list '}'
+                          | '{' statement_list declaration_list '}'
+                          | '{' declaration_list statement_list declaration_list '}'
+                          | '{' statement_list declaration_list statement_list '}'
                           '''
   parent = add_node("compound_statement")
   if len(p) == 3:
@@ -868,10 +872,14 @@ def p_compound_statement(p):
     c1 = add_node(str(p[1]))
     c2 = add_node(str(p[3]))
     t = [parent,c1,p[2],c2]
-  else:
+  elif len(p) == 5:
     c1 = add_node(str(p[1]))
     c2 = add_node(str(p[4]))
     t = [parent,c1,p[2],p[3],c2]
+  else:
+    c1 = add_node(str(p[1]))
+    c2 = add_node(str(p[5]))
+    t = [parent,c1,p[2],p[3],p[4],c2]
   draw_graph(t)
   p[0] = parent
 
