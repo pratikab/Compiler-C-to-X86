@@ -4,6 +4,8 @@ import ply.lex as lex
 import sys
 lex.lex()
 
+from ast_generator import *
+
 import pydot
 graph = pydot.Dot(graph_type='graph')
 
@@ -22,19 +24,198 @@ def draw_graph(p):
     for x in range (1,len(p)):
         add_edge(p[0],p[x])
 
+def _add_typedef_name(self, name):
+  """ Add a new typedef name (ie a TYPEID) to the current scope
+  """
+  if not self._scope_stack[-1].get(name, True):
+    self._parse_error(
+      "Typedef %r previously declared as non-typedef "
+      "in this scope" % name)
+  self._scope_stack[-1][name] = True
+
+def _add_identifier(self, name):
+  """ Add a new object, function, or enum member name (ie an ID) to the
+      current scope
+  """
+  if self._scope_stack[-1].get(name, False):
+    self._parse_error(
+      "Non-typedef %r previously declared as typedef "
+      "in this scope" % name)
+  self._scope_stack[-1][name] = False
+
+def _fix_decl_name_type(self, decl, typename):
+  """ Fixes a declaration. Modifies decl.
+  """
+  # Reach the underlying basic type
+  #
+  type = decl
+  while not isinstance(type, c_ast.TypeDecl):
+    type = type.type
+
+  decl.name = type.declname
+  type.quals = decl.quals
+
+  # The typename is a list of types. If any type in this
+  # list isn't an IdentifierType, it must be the only
+  # type in the list (it's illegal to declare "int enum ..")
+  # If all the types are basic, they're collected in the
+  # IdentifierType holder.
+  #
+  for tn in typename:
+    if not isinstance(tn, c_ast.IdentifierType):
+      # if len(typename) > 1:
+      #   self._parse_error("Invalid multiple types specified")
+      else:
+        type.type = tn
+        return decl
+
+  if not typename:
+    # Functions default to returning int
+    #
+    # if not isinstance(decl.type, c_ast.FuncDecl):
+    #   self._parse_error("Missing type in declaration")
+    type.type = c_ast.IdentifierType(
+            ['int'])
+  else:
+      # At this point, we know that typename is a list of IdentifierType
+      # nodes. Concatenate all the names into a single list.
+      #
+      type.type = c_ast.IdentifierType(
+          [name for id in typename for name in id.names])
+  return decl
+
+def _is_type_in_scope(self, name):
+    """ Is *name* a typedef-name in the current scope?
+    """
+  for scope in reversed(self._scope_stack):
+    # If name is an identifier in this scope it shadows typedefs in
+    # higher scopes.
+    in_scope = scope.get(name)
+    if in_scope is not None: return in_scope
+  return False
+
+
+def _build_declarations(self, spec, decls, typedef_namespace=False):
+  """ Builds a list of declarations all sharing the given specifiers.
+      If typedef_namespace is true, each declared name is added
+      to the "typedef namespace", which also includes objects,
+      functions, and enum constants.
+  """
+  is_typedef = 'typedef' in spec['storage']
+  declarations = []
+
+  # Bit-fields are allowed to be unnamed.
+  #
+  if decls[0].get('bitsize') is not None:
+    pass
+
+  # When redeclaring typedef names as identifiers in inner scopes, a
+  # problem can occur where the identifier gets grouped into
+  # spec['type'], leaving decl as None.  This can only occur for the
+  # first declarator.
+  #
+  elif decls[0]['decl'] is None:
+    if len(spec['type']) < 2 or len(spec['type'][-1].names) != 1 or \
+        not self._is_type_in_scope(spec['type'][-1].names[0]):
+      coord = '?'
+      for t in spec['type']:
+        if hasattr(t):
+          # coord = t.coord
+          break
+      # self._parse_error('Invalid declaration', coord)
+
+    # Make this look as if it came from "direct_declarator:ID"
+    decls[0]['decl'] = c_ast.TypeDecl(
+      declname=spec['type'][-1].names[0],
+      type=None,
+      quals=None)
+    # Remove the "new" type's name from the end of spec['type']
+    del spec['type'][-1]
+
+  # A similar problem can occur where the declaration ends up looking
+  # like an abstract declarator.  Give it a name if this is the case.
+  #
+  elif not isinstance(decls[0]['decl'],
+      (c_ast.Struct, c_ast.Union, c_ast.IdentifierType)):
+    decls_0_tail = decls[0]['decl']
+    while not isinstance(decls_0_tail, c_ast.TypeDecl):
+      decls_0_tail = decls_0_tail.type
+    if decls_0_tail.declname is None:
+      decls_0_tail.declname = spec['type'][-1].names[0]
+      del spec['type'][-1]
+
+  for decl in decls:
+    assert decl['decl'] is not None
+    if is_typedef:
+      declaration = c_ast.Typedef(
+        name=None,
+        quals=spec['qual'],
+        storage=spec['storage'],
+        type=decl['decl'])
+    else:
+      declaration = c_ast.Decl(
+        name=None,
+        quals=spec['qual'],
+        storage=spec['storage'],
+        funcspec=spec['function'],
+        type=decl['decl'],
+        init=decl.get('init'),
+        bitsize=decl.get('bitsize'))
+
+    if isinstance(declaration.type,
+        (c_ast.Struct, c_ast.Union, c_ast.IdentifierType)):
+      fixed_decl = declaration
+    else:
+      fixed_decl = self._fix_decl_name_type(declaration, spec['type'])
+
+    # Add the type name defined by typedef to a
+    # symbol table (for usage in the lexer)
+    #
+    if typedef_namespace:
+      if is_typedef:
+        self._add_typedef_name(fixed_decl.name)
+      else:
+        self._add_identifier(fixed_decl.name)
+
+    declarations.append(fixed_decl)
+  return declarations
+
+def _build_function_definition(self, spec, decl, param_decls, body):
+    """ Builds a function definition.
+    """
+  assert 'typedef' not in spec['storage']
+
+  declaration = self._build_declarations(
+    spec=spec,
+    decls=[dict(decl=decl, init=None)],
+    typedef_namespace=True)[0]
+
+  return c_ast.FuncDef(
+    decl=declaration,
+    param_decls=param_decls,
+    body=body)
 
 def p_primary_expression(p):
-  '''primary_expression   : IDENTIFIER
-                          | constant
+  '''primary_expression   : constant
+                          | identifier
                           | string
                           | '(' expression ')'
                           | generic_selection
                           '''
+  p[0] = p[1]
+
+def p_identifier(p):
+  '''identifier   : IDENTIFIER
+                   '''
+  p[0] = ast_generator.ID(p[1])  
+
 def p_constant(p):
   '''constant             : ICONST
                           | FCONST
                           | CCONST
                           '''
+  p[0] = ast_generator.Constant('int', p[1])
+
 def p_string(p):
   '''string               : STRING_LITERAL
                           | FUNC_NAME
@@ -63,7 +244,7 @@ def p_postfix_expression(p):
                           | '(' type_name ')' '{' initializer_list '}'
                           | '(' type_name ')' '{' initializer_list ',' '}'
                           '''
-
+  p[0] = p[1]
 def p_argument_expression_list(p):
   '''argument_expression_list   : assignment_expression
                                 | argument_expression_list ',' assignment_expression
@@ -74,10 +255,21 @@ def p_unary_expression(p):
                         | INC_OP unary_expression
                         | DEC_OP unary_expression
                         | unary_operator cast_expression
+                        | SIZEOF unary_expression
                         | SIZEOF '(' unary_expression ')'
                         | SIZEOF '(' struct_or_union_specifier ')'
                         | ALIGNOF '(' type_name ')'
                         '''
+
+  p[0] = p[1]
+
+  # p[0] = c_ast.UnaryOp(p[1], p[2], p[2].coord)
+
+  # p[0] = c_ast.UnaryOp(
+  #     p[1],
+  #     p[2] if len(p) == 3 else p[3],
+  #     self._token_coord(p, 1))
+
 
 def p_unary_operator(p):
   '''unary_operator : '&'
@@ -92,25 +284,38 @@ def p_cast_expression(p):
   '''cast_expression  : unary_expression
                       | '(' type_name ')' cast_expression
                       '''
- 
+  p[0] = p[1] 
+
 def p_multiplicative_expression(p):
   '''multiplicative_expression  : cast_expression
                                 | multiplicative_expression '*' cast_expression
                                 | multiplicative_expression '/' cast_expression
                                 | multiplicative_expression '%' cast_expression
                                 '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
 
 def p_additive_expression(p):
   '''additive_expression  : multiplicative_expression
                           | additive_expression '+' multiplicative_expression
                           | additive_expression '-' multiplicative_expression
                           '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
   
 def p_shift_expression(p):
   '''shift_expression   : additive_expression
                         | shift_expression LEFT_OP additive_expression
                         | shift_expression RIGHT_OP additive_expression
                         '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
   
 def p_relational_expression(p):
   '''relational_expression  : shift_expression
@@ -119,48 +324,85 @@ def p_relational_expression(p):
                             | relational_expression LE_OP shift_expression
                             | relational_expression GE_OP shift_expression
                             '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
 
 def p_equality_expression(p):
   '''equality_expression  : relational_expression
                           | equality_expression EQ_OP relational_expression
                           | equality_expression NE_OP relational_expression
                           '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
 
 def p_and_expression(p):
   '''and_expression   : equality_expression
                       | and_expression '&' equality_expression
                       '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
 
 def p_exclusive_or_expression(p):
   '''exclusive_or_expression  : and_expression
                               | exclusive_or_expression '^' and_expression
                               '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
 
 def p_inclusive_or_expression(p):
   '''inclusive_or_expression  : exclusive_or_expression
                               | inclusive_or_expression '|' exclusive_or_expression
                               '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
   
 
 def p_logical_and_expression(p):
   '''logical_and_expression   : inclusive_or_expression
                               | logical_and_expression AND_OP inclusive_or_expression
                               '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
   
 def p_logical_or_expression(p):
   '''logical_or_expression  : logical_and_expression
                             | logical_or_expression OR_OP logical_and_expression
                             '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+      p[0] = ast_generator.BinaryOp(p[2], p[1], p[3])
 
 def p_conditional_expression(p):
   '''conditional_expression   : logical_or_expression
                               | logical_or_expression '?' expression ':' conditional_expression
-                              '''
+                                '''
+  if len(p) == 2:
+    p[0] = p[1]
+# else:
+#   p[0] = c_ast.TernaryOp(p[1], p[3], p[5], p[1].coord)                                
 
 def p_assignment_expression(p):
   '''assignment_expression  : conditional_expression
                             | unary_expression assignment_operator assignment_expression
                             '''
+  if len(p) == 2:
+    p[0] = p[1]
+  else:
+    p[0] = ast_generator.Assignment(p[2], p[1], p[3])
+
   
 def p_assignment_operator(p):
   '''assignment_operator  : '='
@@ -175,11 +417,20 @@ def p_assignment_operator(p):
                           | XOR_ASSIGN
                           | OR_ASSIGN
                           '''
+  p[0] = p[1]
+
 
 def p_expression(p):
   '''expression   : assignment_expression
                   | expression ',' assignment_expression
                   '''
+  if len(p) == 2:
+      p[0] = p[1]
+  else:
+    if not isinstance(p[1], ast_generator.ExprList):
+      p[1] = ast_generator.ExprList([p[1]])
+    p[1].exprs.append(p[3])
+    p[0] = p[1]
 
 def p_constant_expression(p):
   '''constant_expression  : conditional_expression
@@ -190,7 +441,13 @@ def p_declaration(p):
                   | declaration_specifiers init_declarator_list ';'
                   | static_assert_declaration
                   '''
- 
+  spec = p[1]
+  decls = self._build_declarations(
+                spec=spec,
+                decls=p[2],
+                typedef_namespace=True)
+  p[0] = decls
+
 def p_declaration_specifiers(p):
   '''declaration_specifiers   : storage_class_specifier
                               | storage_class_specifier declaration_specifiers
@@ -203,17 +460,18 @@ def p_declaration_specifiers(p):
                               | alignment_specifier declaration_specifiers
                               | alignment_specifier
                               '''
- 
+  p[0] = p[1]
+
 def p_init_declarator_list(p):
   '''init_declarator_list   : init_declarator
                             | init_declarator_list ',' init_declarator
                             '''
-
+  p[0] = p[1]                            
 def p_init_declarator(p):
   '''init_declarator  : declarator
                       | declarator '=' initializer
                       '''
-
+  p[0] = dict(decl=p[1], init=(p[3] if len(p) > 2 else None))
 def p_storage_class_specifier(p):
   '''storage_class_specifier  : TYPEDEF
                               | EXTERN
@@ -238,6 +496,8 @@ def p_type_specifier(p):
                       | struct_or_union_specifier
                       | enum_specifier
                       '''
+  p[0] = ast_generator.IdentifierType([p[1]])
+
 def p_struct_or_union_specifier(p):
   '''struct_or_union_specifier  : struct_or_union IDENTIFIER '{' struct_declaration_list '}'
                                 | struct_or_union '{' struct_declaration_list '}'
@@ -318,10 +578,10 @@ def p_declarator(p):
   '''declarator   : pointer direct_declarator
                   | direct_declarator
                   '''
-
+  p[0] = p[1]                  
 
 def p_direct_declarator(p):
-  '''direct_declarator  : IDENTIFIER
+  '''direct_declarator  : identifier
                         | '(' declarator ')'
                         | direct_declarator '[' ']'
                         | direct_declarator '[' '*' ']'
@@ -336,7 +596,7 @@ def p_direct_declarator(p):
                         | direct_declarator '(' ')'
                         | direct_declarator '(' identifier_list ')'
                         '''
- 
+  p[0] = p[1]
 
 def p_pointer(p):
   '''pointer  : '*'
@@ -412,6 +672,7 @@ def p_initializer(p):
                   | '{' initializer_list '}'
                   | '{' initializer_list ',' '}'
                   '''
+  p[0] = p[1]
 
 def p_initializer_list(p):
   '''initializer_list   : initializer
@@ -454,6 +715,7 @@ def p_compound_statement(p):
   '''compound_statement   : '{' '}'
                           | '{'  block_item_list '}'
                           '''
+  p[0] = c_ast.Compound(block_items=p[2])
 
 def p_block_item_list(p):
   '''block_item_list    : block_item
@@ -496,20 +758,30 @@ def p_translation_unit(p):
   '''translation_unit   : external_declaration
                         | translation_unit external_declaration
                         '''
+  p[0] = p[1]
 
 def p_external_declaration(p):
   '''external_declaration   : function_definition
                             | declaration
                             '''
+  p[0] = p[1]
 
 def p_function_definition(p):
   '''function_definition  : declaration_specifiers declarator declaration_list compound_statement
                           | declaration_specifiers declarator compound_statement
                           '''
+  spec = p[1]
+
+  p[0] = self._build_function_definition(
+      spec=spec,
+      decl=p[2],
+      param_decls=p[3])
 def p_declaration_list(p):
   '''declaration_list   : declaration_list declaration
                         | declaration
                         '''
+  p[0] = p[1] if len(p) == 2 else p[1] + p[2]
+
 def p_error(p):
     if p:
         print("Syntax error at '%s'" % p.value)
