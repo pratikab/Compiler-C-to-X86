@@ -63,8 +63,8 @@ def _fix_decl_name_type(self, decl, typename):
   #
   for tn in typename:
     if not isinstance(tn, c_ast.IdentifierType):
-      # if len(typename) > 1:
-      #   self._parse_error("Invalid multiple types specified")
+      if len(typename) > 1:
+        self._parse_error("Invalid multiple types specified")
       else:
         type.type = tn
         return decl
@@ -85,8 +85,8 @@ def _fix_decl_name_type(self, decl, typename):
   return decl
 
 def _is_type_in_scope(self, name):
-    """ Is *name* a typedef-name in the current scope?
-    """
+  """ Is *name* a typedef-name in the current scope?
+  """
   for scope in reversed(self._scope_stack):
     # If name is an identifier in this scope it shadows typedefs in
     # higher scopes.
@@ -181,19 +181,19 @@ def _build_declarations(self, spec, decls, typedef_namespace=False):
   return declarations
 
 def _build_function_definition(self, spec, decl, param_decls, body):
-    """ Builds a function definition.
-    """
+  """ Builds a function definition.
+  """
   assert 'typedef' not in spec['storage']
 
   declaration = self._build_declarations(
-    spec=spec,
-    decls=[dict(decl=decl, init=None)],
-    typedef_namespace=True)[0]
+  spec=spec,
+  decls=[dict(decl=decl, init=None)],
+  typedef_namespace=True)[0]
 
   return c_ast.FuncDef(
-    decl=declaration,
-    param_decls=param_decls,
-    body=body)
+  decl=declaration,
+  param_decls=param_decls,
+  body=body)
 
 def p_primary_expression(p):
   '''primary_expression   : constant
