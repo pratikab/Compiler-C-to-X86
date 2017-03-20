@@ -32,6 +32,16 @@ reserved = {
     'void' : 'VOID',
     'volatile' : 'VOLATILE',
     'while' : 'WHILE',
+    'restrict' : 'RESTRICT',
+    'inline' : 'INLINE',
+    '_Alignas' : 'ALIGNAS',
+    '_Alignof' : 'ALIGNOF',
+    '_Complex' : 'COMPLEX', 
+    '_Generic' : 'GENERIC',    
+    '_Imaginary' : 'IMAGINARY',  
+    '_Noreturn' : 'NORETURN',  
+    '_Static_assert' : 'STATIC_ASSERT', 
+    '__func__' : 'FUNC_NAME',
 }
 
 
