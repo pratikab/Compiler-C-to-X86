@@ -17,7 +17,7 @@ Graph will be generated in the test directory
 Credits
 -------
 
-* For ANSI C Grammer [C Lex](https://www.lysator.liu.se/c/ANSI-C-grammar-l.html) [C Yacc](https://www.lysator.liu.se/c/ANSI-C-grammar-y.html)
+* For ANSI C Grammer [C Lex](https://www.lysator.liu.se/c/ANSI-C-grammar-l.html) [C Yacc](https://www.lysator.liu.se/c/ANSI-C-grammar-y.html) [GRAMMAR](http://www.quut.com/c/ANSI-C-grammar-l-2011.html)
 * PLY python tool for Lex and Yacc [PLY](https://github.com/dabeaz/ply)
 * PyDot library in python [PyDot](https://github.com/erocarrera/pydot)
 * PLY Examples
