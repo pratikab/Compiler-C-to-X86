@@ -388,7 +388,6 @@ class CParser():
                           | INC_OP unary_expression
                           | DEC_OP unary_expression
                           | unary_operator cast_expression
-                          | SIZEOF unary_expression
                           | SIZEOF '(' unary_expression ')'
                           | SIZEOF '(' struct_or_union_specifier ')'
                           | ALIGNOF '(' type_name ')'
