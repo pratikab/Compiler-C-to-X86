@@ -828,48 +828,59 @@ def p_expression_statement(p):
 def p_selection_statement(p):
   '''selection_statement  : IF '(' expression ')' statement
                           '''
+  p[0] = ast_node("IF Statement", value = '', type = '', children = [p[3],p[5]])
 def p_selection_statement_1(p):
   '''selection_statement  : IF '(' expression ')' statement ELSE statement
                           '''
+  p[0] = ast_node("IF-Else Statement", value = '', type = '', children = [p[3],p[5],p[7]])
 def p_selection_statement_2(p):
   '''selection_statement  : SWITCH '(' expression ')' statement
                           '''
-
+  p[0] = ast_node("Switch Statement", value = '', type = '', children = [p[3],p[5]])
 def p_iteration_statement(p):
   '''iteration_statement  : WHILE '(' expression ')' statement
                           '''
+  p[0] = ast_node("While Statement", value = '', type = '', children = [p[3],p[5]])
 def p_iteration_statement_1(p):
   '''iteration_statement  : DO statement WHILE '(' expression ')' ';'
                           '''
+  p[0] = ast_node("Do-While Statement", value = '', type = '', children = [p[2],p[5]])
 def p_iteration_statement_2(p):
   '''iteration_statement  : FOR '(' expression_statement expression_statement ')' statement
                           '''
+  p[0] = ast_node("For Statement", value = '', type = '', children = [p[3],p[4],p[6]])
 def p_iteration_statement_3(p):
   '''iteration_statement  : FOR '(' expression_statement expression_statement expression ')' statement
                           '''
+  p[0] = ast_node("For Statement", value = '', type = '', children = [p[3],p[4],p[5],p[7]])
 def p_iteration_statement_4(p):
   '''iteration_statement  : FOR '(' declaration expression_statement ')' statement
                           '''
+  p[0] = ast_node("For Statement", value = '', type = '', children = [p[3],p[4],p[6]])                          
 def p_iteration_statement_5(p):
   '''iteration_statement  : FOR '(' declaration expression_statement expression ')' statement
                           '''
-
+  p[0] = ast_node("For Statement", value = '', type = '', children = [p[3],p[4],p[5],p[7]])
 def p_jump_statement(p):
   '''jump_statement   : GOTO IDENTIFIER ';'
                       '''
+  p[0] = ast_node("Goto", value = '', type = '', children = [])
 def p_jump_statement_1(p):
   '''jump_statement   : CONTINUE ';'
                       '''
+  p[0] = ast_node("CONTINUE", value = '', type = '', children = [])
 def p_jump_statement_2(p):
   '''jump_statement   : BREAK ';'
                       '''
+  p[0] = ast_node("BREAK", value = '', type = '', children = [])
 def p_jump_statement_3(p):
   '''jump_statement   : RETURN ';'
                       '''
+  p[0] = ast_node("RETURN", value = '', type = '', children = [])
 def p_jump_statement_4(p):
   '''jump_statement   : RETURN expression ';'
                       '''
-
+  p[0] = ast_node("Goto", value = '', type = '', children = [p[2]])
 def p_translation_unit(p):
   '''translation_unit   : external_declaration
                         | translation_unit external_declaration
@@ -894,7 +905,7 @@ def p_function_definition(p):
   if len(p) == 4:
     p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[1],p[2],p[3]])
   else:
-    pass
+    p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[1],p[2],p[3],p[4]])
   
 def p_declaration_list(p):
   '''declaration_list   : declaration_list declaration
@@ -903,7 +914,10 @@ def p_declaration_list(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    pass
+    if p[1].name != 'Declaration List':
+      p[1] = ast_node('Declaration List',value = '', type = '', children = [])
+    p[1].children.append(p[2])
+    p[0] = p[1] 
 
 def p_error(p):
     if p:
