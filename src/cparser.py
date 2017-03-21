@@ -75,20 +75,20 @@ def p_identifier(p):
 def p_constant(p):
   '''constant             : ICONST
                           '''
-  p[0] = ast_node("Constant Literal",value = p[1],type ="int",children = [])  
+  p[0] = ast_node("Constant Literal",value = "",type ="int",children = [])  
 def p_constant_1(p):
   '''constant             : FCONST
                           '''
-  p[0] = ast_node("Constant Literal",value = p[1],type ="float",children = [])  
+  p[0] = ast_node("Constant Literal",value = "",type ="float",children = [])  
 def p_constant_2(p):
   '''constant             : CCONST
                           '''
-  p[0] = ast_node("Constant Literal",value = p[1],type ="char",children = [])  
+  p[0] = ast_node("Constant Literal",value = "",type ="char",children = [])  
 
 def p_string(p):
   '''string               : STRING_LITERAL
                            '''
-  p[0] = ast_node("String Literal",value = p[1],type ="string",children = [])  
+  p[0] = ast_node("String Literal",value = "",type ="string",children = [])  
 
 def p_postfix_expression(p):
   '''postfix_expression   : primary_expression
@@ -418,7 +418,7 @@ def p_type_specifier(p):
                       | COMPLEX
                       | IMAGINARY
                       '''
-  p[0] = ast_node("",value = p[1],type =p[1],children = [])
+  p[0] = ast_node("",value = "",type =p[1],children = [])
 
 def p_type_specifier_1(p):
   '''type_specifier   : struct_or_union_specifier
@@ -903,9 +903,9 @@ def p_function_definition(p):
                           | declaration_specifiers declarator compound_statement
                           '''
   if len(p) == 4:
-    p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[1],p[2],p[3]])
+    p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[2],p[3]])
   else:
-    p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[1],p[2],p[3],p[4]])
+    p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[2],p[3],p[4]])
   
 def p_declaration_list(p):
   '''declaration_list   : declaration_list declaration
