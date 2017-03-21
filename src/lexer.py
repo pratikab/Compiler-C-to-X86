@@ -40,7 +40,6 @@ reserved = {
     '_Imaginary' : 'IMAGINARY',  
     '_Noreturn' : 'NORETURN',  
     '_Static_assert' : 'STATIC_ASSERT', 
-    '__func__' : 'FUNC_NAME',
 }
 
 
