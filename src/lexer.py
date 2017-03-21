@@ -34,8 +34,6 @@ reserved = {
     'while' : 'WHILE',
     'restrict' : 'RESTRICT',
     'inline' : 'INLINE',
-    '_Alignas' : 'ALIGNAS',
-    '_Alignof' : 'ALIGNOF',
     '_Complex' : 'COMPLEX', 
     '_Imaginary' : 'IMAGINARY',  
     '_Noreturn' : 'NORETURN',  

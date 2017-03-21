@@ -40,11 +40,11 @@ class ast_node(object):
     else:
       self.arraylen = [ ]
   def print_tree(self,depth):
-    for i in range(0,depth):
-      print "\t",
+    for i in range(0,depth-1):
+      print "-",
+    print "+",
     depth = depth + 1
     print (self.name + " " + self.type+" "+str(self.value))
-    print "  ",
     if len(self.children) > 0 :
       for child in self.children : 
         child.print_tree(depth)
@@ -98,7 +98,7 @@ def p_postfix_expression(p):
 def p_postfix_expression_1(p):
   '''postfix_expression   : postfix_expression '[' expression ']'
                           '''
-  p[0] = ast_node("Array Declaration",value = p[1].value,type =p[1].type,arraylen = p[3].value,children = [p[1],p[3]])  
+  p[0] = ast_node("Array Access",value = p[1].value,type =p[1].type,arraylen = p[3].value,children = [p[1],p[3]])  
 
 def p_postfix_expression_2(p):
   '''postfix_expression   : postfix_expression '(' ')'
@@ -127,10 +127,13 @@ def p_argument_expression_list(p):
   '''argument_expression_list   : assignment_expression
                                 | argument_expression_list ',' assignment_expression
                                 '''
-  if len(p) ==  2:
-    p[0] = ast_node("Argument List",value = p[1].value, type = p[1].type, children = [p[1]])
+  if len(p) == 2:
+    p[0] = ast_node('Argument List',value = '', type = p[1].type, children = [p[1]])
   else:
-    p[1].children.append(p[3]) # TO CHECK
+    if p[1].name != 'Argument List':
+      p[1] = ast_node('Argument List',value = '', type = p[3].type, children = [])
+    p[1].children.append(p[3])
+    p[0] = p[1] 
 def p_unary_expression(p):
   '''unary_expression   : postfix_expression
                         '''
@@ -147,17 +150,7 @@ def p_unary_expression_3(p):
   '''unary_expression   : SIZEOF '(' unary_expression ')'
                         | SIZEOF '(' struct_or_union_specifier ')'
                         '''
-  p[0] = ast_node("Size Of", value = p[3].value, type = p[3].type, children =[p[3]])                      
-def p_unary_expression_4(p):
-  '''unary_expression   : ALIGNOF '(' type_name ')'
-                        '''
-  # p[0] = UnaryOp(p[1], p[2], p[2].coord)
-
-  # p[0] = UnaryOp(
-  #     p[1],
-  #     p[2] if len(p) == 3 else p[3],
-  #     self._token_coord(p, 1))
-
+  p[0] = ast_node("Size Of", value = p[3].value, type = p[3].type, children =[p[3]])  
 
 def p_unary_operator(p):
   '''unary_operator : '&'
@@ -342,39 +335,17 @@ def p_declaration(p):
 def p_declaration_specifiers(p):
   '''declaration_specifiers   : storage_class_specifier
                               | storage_class_specifier declaration_specifiers
-                              '''
-
-def p_declaration_specifiers_1(p):
-  '''declaration_specifiers   : type_specifier
+                              | type_specifier
                               | type_specifier declaration_specifiers
-                              '''
-  if len(p) == 2:
-    p[0] = p[1]
-  else:
-    if p[2].name != 'Declaration Specifiers':
-      p[2] = ast_node('Declaration Specifiers',value = '', type = '', children = [])
-    p[2].children.insert(0,p[1])
-    p[0] = p[2] 
-
-def p_declaration_specifiers_2(p):
-  '''declaration_specifiers   : type_qualifier
+                              | type_qualifier
                               | type_qualifier declaration_specifiers
-                              '''
-def p_declaration_specifiers_3(p):
-  '''declaration_specifiers   : function_specifier declaration_specifiers
-                              | function_specifier
+                              | function_specifier declaration_specifiers
+                              | function_specifier                               
                               '''
   if len(p) == 2:
     p[0] = p[1]
   else:
-    if p[2].name != 'Function Specifiers':
-      p[2] = ast_node('Function Specifiers',value = '', type = '', children = [])
-    p[2].children.insert(0,p[1])
-    p[0] = p[2] 
-def p_declaration_specifiers_4(p):
-  '''declaration_specifiers   : alignment_specifier declaration_specifiers
-                              | alignment_specifier
-                              '''
+    p[0] = ast_node("Declaration Specifier",value = p[1].value,type =p[1].type ,children = [p[1],p[2]])
 
 def p_init_declarator_list(p):
   '''init_declarator_list   : init_declarator
@@ -385,7 +356,7 @@ def p_init_declarator_list(p):
   else:
     if p[1].name != 'Declarator List':
       p[1] = ast_node('Declarator List',value = '', type = '', children = [])
-    p[1].children.append(p[2])
+    p[1].children.append(p[3])
     p[0] = p[1] 
 def p_init_declarator(p):
   '''init_declarator  : declarator
@@ -403,7 +374,7 @@ def p_storage_class_specifier(p):
                               | AUTO
                               | REGISTER
                               '''
- 
+  p[0] = ast_node("Storage Specifier",value = "",type =p[1],children = []) 
 def p_type_specifier(p):
   '''type_specifier   : VOID
                       | CHAR
@@ -427,13 +398,13 @@ def p_type_specifier_1(p):
   p[0] = ast_node("",value = p[1].value,type =p[1].type,children = [])
 
 def p_struct_or_union_specifier(p):
-  '''struct_or_union_specifier  : struct_or_union IDENTIFIER '{' struct_declaration_list '}'
+  '''struct_or_union_specifier  : struct_or_union identifier '{' struct_declaration_list '}'
                                 '''
 def p_struct_or_union_specifier_1(p):
   '''struct_or_union_specifier  : struct_or_union '{' struct_declaration_list '}'
                                 '''
 def p_struct_or_union_specifier_2(p):
-  '''struct_or_union_specifier  : struct_or_union IDENTIFIER
+  '''struct_or_union_specifier  : struct_or_union identifier
                                 '''
 
 def p_struct_or_union_(p):
@@ -498,13 +469,13 @@ def p_enum_specifier_1(p):
   '''enum_specifier     : ENUM '{' enumerator_list ',' '}'
                         '''
 def p_enum_specifier_2(p):
-  '''enum_specifier     : ENUM IDENTIFIER '{' enumerator_list '}'
+  '''enum_specifier     : ENUM identifier '{' enumerator_list '}'
                         '''
 def p_enum_specifier_3(p):
-  '''enum_specifier     : ENUM IDENTIFIER '{' enumerator_list ',' '}'
+  '''enum_specifier     : ENUM identifier '{' enumerator_list ',' '}'
                        '''
 def p_enum_specifier_4(p):
-  '''enum_specifier     : ENUM IDENTIFIER
+  '''enum_specifier     : ENUM identifier
                         '''
 def p_enumerator_list(p):
   '''enumerator_list  : enumerator
@@ -515,8 +486,8 @@ def p_enumerator_list(p):
   else: 
     pass
 def p_enumerator(p):
-  '''enumerator   : IDENTIFIER
-                  | IDENTIFIER '=' constant_expression
+  '''enumerator   : identifier
+                  | identifier '=' constant_expression
                   '''
   if len(p) == 2:
     p[0] = p[1]
@@ -527,14 +498,13 @@ def p_type_qualifier(p):
                       | VOLATILE
                       | RESTRICT
                       '''
+  p[0] = ast_node("Qualifier Declaration",value = "",type =p[1],children = [])  
+
 def p_function_specifier(p):
   '''function_specifier   : INLINE
                           | NORETURN
                           '''
-def p_alignment_specifier(p):
-  '''alignment_specifier   : ALIGNAS '(' type_name ')'
-                          | ALIGNAS '(' constant_expression ')'
-                          '''
+  p[0] = ast_node("Function Specification",value = "",type =p[1],children = [])
 def p_declarator(p):
   '''declarator   : pointer direct_declarator
                   | direct_declarator
@@ -555,7 +525,7 @@ def p_direct_declarator_1(p):
 def p_direct_declarator_2(p):
   '''direct_declarator  : direct_declarator '[' ']'
                         '''
-  p[0] = p[1]
+  p[0] = ast_node("Array Declaration",value = "",type =p[1].type,arraylen = 0,children = [p[1]]) 
 def p_direct_declarator_3(p):
   '''direct_declarator  : direct_declarator '[' '*' ']'
                         '''
@@ -580,6 +550,7 @@ def p_direct_declarator_9(p):
 def p_direct_declarator_10(p):
   '''direct_declarator  : direct_declarator '[' assignment_expression ']'
                         '''
+  p[0] = ast_node("Array Declaration",value = "",type =p[1].type,arraylen = p[3].value,children = [p[1],p[3]]) 
 def p_direct_declarator_11(p):
   '''direct_declarator  : direct_declarator '(' parameter_type_list ')'
                         '''
@@ -638,8 +609,8 @@ def p_parameter_declaration(p):
     pass 
 
 def p_identifier_list(p):
-  '''identifier_list  : IDENTIFIER
-                      | identifier_list ',' IDENTIFIER
+  '''identifier_list  : identifier
+                      | identifier_list ',' identifier
                       '''
   if len(p) == 2:
     p[0] = ast_node("Variable Declaration",value = p[1],type ="",children = [])  
@@ -734,23 +705,28 @@ def p_initializer(p):
   p[0] = p[1]
 def p_initializer_1(p):
   '''initializer  : '{' initializer_list '}'
+                  | '{' initializer_list ',' '}'
                   '''
-def p_initializer_2(p):
-  '''initializer  : '{' initializer_list ',' '}'
-                  '''
-
+  p[0] = p[2]
 def p_initializer_list(p):
   '''initializer_list   : initializer
+                        | initializer_list ',' initializer
                         '''
-def p_initializer_list_1(p):
-  '''initializer_list   : initializer_list ',' initializer
-                        '''
+  if len(p) == 2:
+    p[0] = ast_node("Initializer List",value = '',type = p[1].type, children = [p[1]])
+  else:
+    if p[1].name != 'Initializer List':
+      p[1] = ast_node('Initializer List',value = '', type = p[3].type, children = [])
+    p[1].children.append(p[3])
+    p[0] = p[1] 
+
 def p_initializer_list_2(p):
   '''initializer_list   : designation initializer
                         '''
 def p_initializer_list_3(p):
   '''initializer_list   : initializer_list ',' designation initializer
                         '''
+
 def p_designation(p):
   '''designation   : designator_list '='
                   ''' 
@@ -764,7 +740,7 @@ def p_designator_list(p):
     pass  
 def p_designator(p):
   '''designator    : '[' constant_expression ']'
-                   | '.' IDENTIFIER
+                   | '.' identifier
                   '''
   if len(p) == 3:
     pass
@@ -785,14 +761,18 @@ def p_statement(p):
   p[0] = p[1]
 
 def p_labeled_statement(p):
-  '''labeled_statement  : IDENTIFIER ':' statement
+  '''labeled_statement  : identifier ':' statement
                         '''
+  ast_node('Label statement',value = '', type = '', children = [p[1],p[3]])
 def p_labeled_statement_1(p):
   '''labeled_statement  : CASE constant_expression ':' statement
                         '''
+  ast_node('Case statement',value = '', type = '', children = [p[2],p[4]])
+
 def p_labeled_statement_2(p):
   '''labeled_statement  : DEFAULT ':' statement
                         '''
+  ast_node('Default statement',value = '', type = '', children = [p[3]])
 
 def p_compound_statement(p):
   '''compound_statement   : '{' '}'
@@ -865,9 +845,9 @@ def p_iteration_statement_5(p):
                           '''
   p[0] = ast_node("For Statement", value = '', type = '', children = [p[3],p[4],p[5],p[7]])
 def p_jump_statement(p):
-  '''jump_statement   : GOTO IDENTIFIER ';'
+  '''jump_statement   : GOTO identifier ';'
                       '''
-  p[0] = ast_node("Goto", value = '', type = '', children = [])
+  p[0] = ast_node("Goto", value = '', type = '', children = [p[2]])
 def p_jump_statement_1(p):
   '''jump_statement   : CONTINUE ';'
                       '''
@@ -890,10 +870,9 @@ def p_translation_unit(p):
                         '''
   global start
   if len(p) == 2:
-    start = p[1]
-    p[0] = p[1]
+    start.children.append(p[1])
   else:
-    pass
+    start.children.append(p[2])
 
 def p_external_declaration(p):
   '''external_declaration   : function_definition
