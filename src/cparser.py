@@ -98,48 +98,56 @@ def p_postfix_expression(p):
 def p_postfix_expression_1(p):
   '''postfix_expression   : postfix_expression '[' expression ']'
                           '''
+  p[0] = ast_node("Array Declaration",value = p[1].value,type =p[1].type,arraylen = p[3].value,children = [p[1],p[3]])  
+
 def p_postfix_expression_2(p):
   '''postfix_expression   : postfix_expression '(' ')'
                           '''                          
+  p[0] = ast_node("Function Call",value = p[1].value,type = p[1].type,children =[p[1]])                          
 def p_postfix_expression_3(p):
   '''postfix_expression   : postfix_expression '(' argument_expression_list ')'
                           '''
+  p[0] = ast_node("Function Call",value = p[1].value,type = p[1].type,children =[p[1],p[3]])  
 def p_postfix_expression_4(p):
-  '''postfix_expression   : postfix_expression '.' IDENTIFIER
-                          | postfix_expression PTR_OP IDENTIFIER
+  '''postfix_expression   : postfix_expression '.' identifier
+                          | postfix_expression PTR_OP identifier
                           '''
+  p[0] = ast_node("Struct Reference",value = p[1].value,type = "Struct"+str(p[1].value),children =[p[1],p[3]])                          
 def p_postfix_expression_5(p):
   '''postfix_expression   : postfix_expression INC_OP
                           | postfix_expression DEC_OP
                          '''
+  p[0] = ast_node("Unary Operator",value = p[1].value, type = p[1].type, children =[p[1]])
 def p_postfix_expression_6(p):
   '''postfix_expression   : '(' type_name ')' '{' initializer_list '}'
+                          | '(' type_name ')' '{' initializer_list ',' '}'
                           '''
-def p_postfix_expression_7(p):
-  '''postfix_expression   : '(' type_name ')' '{' initializer_list ',' '}'
-                          '''
+  p[0] = ast_node("Compound Literal")
 def p_argument_expression_list(p):
   '''argument_expression_list   : assignment_expression
                                 | argument_expression_list ',' assignment_expression
                                 '''
-
+  if len(p) ==  2:
+    p[0] = ast_node("Argument List",value = p[1].value, type = p[1].type, children = [p[1]])
+  else:
+    p[1].children.append(p[3])
 def p_unary_expression(p):
   '''unary_expression   : postfix_expression
                         '''
-
   p[0] = p[1]
 
 def p_unary_expression_1(p):
   '''unary_expression   : INC_OP unary_expression
                         | DEC_OP unary_expression
+                        | unary_operator cast_expression
                         '''
-def p_unary_expression_2(p):
-  '''unary_expression   : unary_operator cast_expression
-                      '''
+  p[0] = ast_node("Unary Operator",value = p[1].value, type = p[1].type, children =[p[2]])
+
 def p_unary_expression_3(p):
   '''unary_expression   : SIZEOF '(' unary_expression ')'
                         | SIZEOF '(' struct_or_union_specifier ')'
                         '''
+  p[0] = ast_node("Size Of", value = p[3].value, type = p[3].type, children =[p[3]])                      
 def p_unary_expression_4(p):
   '''unary_expression   : ALIGNOF '(' type_name ')'
                         '''
@@ -159,7 +167,7 @@ def p_unary_operator(p):
                     | '~'
                     | '!'
                     '''
-
+  p[0] = p [1]
 def p_cast_expression(p):
   '''cast_expression  : unary_expression
                       | '(' type_name ')' cast_expression
@@ -167,7 +175,8 @@ def p_cast_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else: 
-    pass
+    p[0] = ast_node("Tyep Cast", value = p[2].value, type = p[2].type, children =[p[2],p[4]])
+
 def p_multiplicative_expression(p):
   '''multiplicative_expression  : cast_expression
                                 | multiplicative_expression '*' cast_expression
@@ -175,9 +184,9 @@ def p_multiplicative_expression(p):
                                 | multiplicative_expression '%' cast_expression
                                 '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Multiplication", value = "", type = '', children =[p[1],p[3]])                      
 
 def p_additive_expression(p):
   '''additive_expression  : multiplicative_expression
@@ -185,9 +194,9 @@ def p_additive_expression(p):
                           | additive_expression '-' multiplicative_expression
                           '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Addition", value = "", type = '', children =[p[1],p[3]])
   
 def p_shift_expression(p):
   '''shift_expression   : additive_expression
@@ -195,9 +204,9 @@ def p_shift_expression(p):
                         | shift_expression RIGHT_OP additive_expression
                         '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Shift", value = "", type = '', children =[p[1],p[3]])
   
 def p_relational_expression(p):
   '''relational_expression  : shift_expression
@@ -207,9 +216,9 @@ def p_relational_expression(p):
                             | relational_expression GE_OP shift_expression
                             '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Relation", value = "", type = '', children =[p[1],p[3]])
 
 def p_equality_expression(p):
   '''equality_expression  : relational_expression
@@ -217,36 +226,36 @@ def p_equality_expression(p):
                           | equality_expression NE_OP relational_expression
                           '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Equality", value = "", type = '', children =[p[1],p[3]])
 
 def p_and_expression(p):
   '''and_expression   : equality_expression
                       | and_expression '&' equality_expression
                       '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("AND", value = "", type = '', children =[p[1],p[3]])
 
 def p_exclusive_or_expression(p):
   '''exclusive_or_expression  : and_expression
                               | exclusive_or_expression '^' and_expression
                               '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Exclusive OR", value = "", type = '', children =[p[1],p[3]])
 
 def p_inclusive_or_expression(p):
   '''inclusive_or_expression  : exclusive_or_expression
                               | inclusive_or_expression '|' exclusive_or_expression
                               '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Inclusive OR", value = "", type = '', children =[p[1],p[3]])
   
 
 def p_logical_and_expression(p):
@@ -254,18 +263,18 @@ def p_logical_and_expression(p):
                               | logical_and_expression AND_OP inclusive_or_expression
                               '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Logical AND", value = "", type = '', children =[p[1],p[3]])
   
 def p_logical_or_expression(p):
   '''logical_or_expression  : logical_and_expression
                             | logical_or_expression OR_OP logical_and_expression
                             '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-      p[0] = BinaryOp(p[2], p[1], p[3])
+    p[0] = ast_node("Logical OR", value = "", type = '', children =[p[1],p[3]])
 
 def p_conditional_expression(p):
   '''conditional_expression   : logical_or_expression
@@ -273,8 +282,8 @@ def p_conditional_expression(p):
                                 '''
   if len(p) == 2:
     p[0] = p[1]
-# else:
-#   p[0] = TernaryOp(p[1], p[3], p[5], p[1].coord)                                
+  else:
+    p[0] = ast_node("Ternary Operation", value = "", type = '', children =[p[1],p[3],p[5]])
 
 def p_assignment_expression(p):
   '''assignment_expression  : conditional_expression
@@ -283,7 +292,7 @@ def p_assignment_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = Assignment(p[2], p[1], p[3])
+    p[0] = ast_node("Assignment", value = "", type = p[1].type, children =[p[1],p[3]])
 
   
 def p_assignment_operator(p):
@@ -307,14 +316,16 @@ def p_expression(p):
                   | expression ',' assignment_expression
                   '''
   if len(p) == 2:
-      p[0] = p[1]
+    p[0] = p[1]
   else:
-    pass
-
+    if p[1].name != 'Expression List':
+      p[1] = ast_node('Expression List',value = '', type = p[3].type, children = [])
+    p[1].children.append(p[3])
+    p[0] = p[1] 
 def p_constant_expression(p):
   '''constant_expression  : conditional_expression
                           '''
- 
+  p[0] = p[1] 
 def p_declaration(p):
   '''declaration  : declaration_specifiers ';'
                   | declaration_specifiers init_declarator_list ';'
@@ -326,24 +337,44 @@ def p_declaration(p):
     p[0] = ast_node("Declaration Statement",value = "",type =p[1].type ,children = [p[2]])
     p[0].set_type(p[1].type)
   else:
-    pass
+    p[0] = p[1]
 
 def p_declaration_specifiers(p):
   '''declaration_specifiers   : storage_class_specifier
                               | storage_class_specifier declaration_specifiers
-                              | type_specifier
+                              '''
+
+def p_declaration_specifiers_1(p):
+  '''declaration_specifiers   : type_specifier
                               | type_specifier declaration_specifiers
-                              | type_qualifier
-                              | type_qualifier declaration_specifiers
-                              | function_specifier declaration_specifiers
-                              | function_specifier
-                              | alignment_specifier declaration_specifiers
-                              | alignment_specifier
                               '''
   if len(p) == 2:
     p[0] = p[1]
   else:
-    pass
+    if p[2].name != 'Declaration Specifiers':
+      p[2] = ast_node('Declaration Specifiers',value = '', type = '', children = [])
+    p[2].children.insert(0,p[1])
+    p[0] = p[2] 
+
+def p_declaration_specifiers_2(p):
+  '''declaration_specifiers   : type_qualifier
+                              | type_qualifier declaration_specifiers
+                              '''
+def p_declaration_specifiers_3(p):
+  '''declaration_specifiers   : function_specifier declaration_specifiers
+                              | function_specifier
+                              '''
+  if len(p) == 2:
+    p[0] = p[1]
+  else:
+    if p[2].name != 'Function Specifiers':
+      p[2] = ast_node('Function Specifiers',value = '', type = '', children = [])
+    p[2].children.insert(0,p[1])
+    p[0] = p[2] 
+def p_declaration_specifiers_4(p):
+  '''declaration_specifiers   : alignment_specifier declaration_specifiers
+                              | alignment_specifier
+                              '''
 
 def p_init_declarator_list(p):
   '''init_declarator_list   : init_declarator
@@ -351,8 +382,11 @@ def p_init_declarator_list(p):
                             '''
   if len(p) == 2:
     p[0] = p[1]
-  else: 
-    pass                           
+  else:
+    if p[1].name != 'Declarator List':
+      p[1] = ast_node('Declarator List',value = '', type = '', children = [])
+    p[1].children.append(p[2])
+    p[0] = p[1] 
 def p_init_declarator(p):
   '''init_declarator  : declarator
                       | declarator '=' initializer
@@ -390,6 +424,7 @@ def p_type_specifier_1(p):
   '''type_specifier   : struct_or_union_specifier
                       | enum_specifier
                       '''
+  p[0] = ast_node("",value = p[1].value,type =p[1].type,children = [])
 
 def p_struct_or_union_specifier(p):
   '''struct_or_union_specifier  : struct_or_union IDENTIFIER '{' struct_declaration_list '}'
@@ -524,13 +559,13 @@ def p_direct_declarator_2(p):
 def p_direct_declarator_3(p):
   '''direct_declarator  : direct_declarator '[' '*' ']'
                         '''
+  p[0] = p[1]
 def p_direct_declarator_4(p):
   '''direct_declarator  : direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
+                        | direct_declarator '[' STATIC assignment_expression ']'
                         '''
+
 def p_direct_declarator_5(p):
-  '''direct_declarator  : direct_declarator '[' STATIC assignment_expression ']'
-                        '''
-def p_direct_declarator_6(p):
   '''direct_declarator  : direct_declarator '[' type_qualifier_list '*' ']'
                         '''
 def p_direct_declarator_7(p):
