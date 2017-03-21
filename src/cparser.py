@@ -75,20 +75,20 @@ def p_identifier(p):
 def p_constant(p):
   '''constant             : ICONST
                           '''
-  p[0] = ast_node("Constant Literal",value = "",type ="int",children = [])  
+  p[0] = ast_node("Constant Literal",value = p[1],type ="int",children = [])  
 def p_constant_1(p):
   '''constant             : FCONST
                           '''
-  p[0] = ast_node("Constant Literal",value = "",type ="float",children = [])  
+  p[0] = ast_node("Constant Literal",value = p[1],type ="float",children = [])  
 def p_constant_2(p):
   '''constant             : CCONST
                           '''
-  p[0] = ast_node("Constant Literal",value = "",type ="char",children = [])  
+  p[0] = ast_node("Constant Literal",value = p[1],type ="char",children = [])  
 
 def p_string(p):
   '''string               : STRING_LITERAL
                            '''
-  p[0] = ast_node("String Literal",value = "",type ="string",children = [])  
+  p[0] = ast_node("String Literal",value = p[1],type ="string",children = [])  
 
 def p_postfix_expression(p):
   '''postfix_expression   : primary_expression
@@ -130,7 +130,7 @@ def p_argument_expression_list(p):
   if len(p) ==  2:
     p[0] = ast_node("Argument List",value = p[1].value, type = p[1].type, children = [p[1]])
   else:
-    p[1].children.append(p[3])
+    p[1].children.append(p[3]) # TO CHECK
 def p_unary_expression(p):
   '''unary_expression   : postfix_expression
                         '''
@@ -316,7 +316,7 @@ def p_expression(p):
                   | expression ',' assignment_expression
                   '''
   if len(p) == 2:
-    p[0] = p[1]
+    p[0] = ast_node('Expression List',value = '', type = p[3].type, children = [p[1]])
   else:
     if p[1].name != 'Expression List':
       p[1] = ast_node('Expression List',value = '', type = p[3].type, children = [])
@@ -381,7 +381,7 @@ def p_init_declarator_list(p):
                             | init_declarator_list ',' init_declarator
                             '''
   if len(p) == 2:
-    p[0] = p[1]
+    p[0] = ast_node('Declarator List',value = '', type = '', children = [p[1]])
   else:
     if p[1].name != 'Declarator List':
       p[1] = ast_node('Declarator List',value = '', type = '', children = [])
@@ -809,9 +809,12 @@ def p_block_item_list(p):
                           '''
   
   if len(p) == 2:
-    p[0] = p[1]
+    p[0] = ast_node("BlockItem List",value = '',type = '', children = [p[1]])
   else:
-    pass
+    if p[1].name != 'BlockItem List':
+      p[1] = ast_node('BlockItem List',value = '', type = '', children = [])
+    p[1].children.append(p[2])
+    p[0] = p[1] 
 def p_block_item(p):
   '''block_item     : declaration
                     | statement
@@ -912,7 +915,7 @@ def p_declaration_list(p):
                         | declaration
                         '''
   if len(p) == 2:
-    p[0] = p[1]
+    p[0] = ast_node('Declaration List',value = '', type = '', children = [p[1]])
   else:
     if p[1].name != 'Declaration List':
       p[1] = ast_node('Declaration List',value = '', type = '', children = [])
