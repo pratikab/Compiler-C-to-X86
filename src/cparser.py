@@ -360,7 +360,7 @@ def p_init_declarator(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node("Initialize",value = p[2],type ="" ,children = [p[1],p[3]])  
+    p[0] = ast_node("Initialize",value = p[1].value,type ="" ,children = [p[1],p[3]])  
 
 def p_storage_class_specifier(p):
   '''storage_class_specifier  : TYPEDEF
