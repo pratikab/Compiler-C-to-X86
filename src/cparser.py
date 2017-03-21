@@ -339,8 +339,6 @@ def p_declaration_specifiers(p):
                               | type_specifier declaration_specifiers
                               | type_qualifier
                               | type_qualifier declaration_specifiers
-                              | function_specifier declaration_specifiers
-                              | function_specifier                               
                               '''
   if len(p) == 2:
     p[0] = p[1]
@@ -395,22 +393,28 @@ def p_type_specifier_1(p):
   '''type_specifier   : struct_or_union_specifier
                       | enum_specifier
                       '''
-  p[0] = ast_node("",value = p[1].value,type =p[1].type,children = [])
+  p[0] = ast_node("",value = p[1].value,type =p[1].type,children = [p[1]])
 
 def p_struct_or_union_specifier(p):
   '''struct_or_union_specifier  : struct_or_union identifier '{' struct_declaration_list '}'
                                 '''
+  p[0] = ast_node("Struct Declaration",value = "",type =(p[1]+" "+p[2].value),children = [p[2],p[4]])
+
 def p_struct_or_union_specifier_1(p):
   '''struct_or_union_specifier  : struct_or_union '{' struct_declaration_list '}'
                                 '''
+  p[0] = ast_node("Struct Declaration",value = "",type =(p[1]),children = [p[3]])
+
 def p_struct_or_union_specifier_2(p):
   '''struct_or_union_specifier  : struct_or_union identifier
                                 '''
+  p[0] = ast_node("Struct Declaration",value = "",type =(p[1]+" "+p[2].value),children = [p[2]])
 
 def p_struct_or_union_(p):
   '''struct_or_union  : STRUCT
                       | UNION
                       '''
+  p[0] = p[1]
 
 
 def p_struct_declaration_list(p):
@@ -418,20 +422,25 @@ def p_struct_declaration_list(p):
                               | struct_declaration_list struct_declaration
                               '''
   if len(p) == 2:
-    p[0] = p[1]
+    p[0] = ast_node("Struct Declaration List",value = '',type = p[1].type, children = [p[1]])
   else:
-    pass 
+    if p[1].name != 'Struct Declaration List':
+      p[1] = ast_node('Struct Declaration List',value = '', type = p[2].type, children = [])
+    p[1].children.append(p[2])
+    p[0] = p[1] 
+
 def p_struct_declaration(p):
   '''struct_declaration   : specifier_qualifier_list ';'
                           | specifier_qualifier_list struct_declarator_list ';' 
                           | static_assert_declaration  
                           '''
   if len(p) == 2:
-    pass
-  elif len(p) == 3:
-    pass
+    p[0] = p[1]
+  elif len(p) == 4:
+    p[0] = ast_node("struct declarations",value = "",type =p[1].type ,children = [p[2]])
+    #p[0].set_type(p[1].type)
   else:
-    pass
+    p[0] = p[1]
 def p_specifier_qualifier_list(p):
   '''specifier_qualifier_list   : type_specifier specifier_qualifier_list
                                 | type_specifier
@@ -441,15 +450,19 @@ def p_specifier_qualifier_list(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    pass 
+    p[0] = ast_node("Declaration Specifier",value = p[1].value,type =p[1].type ,children = [p[1],p[2]])
+
 def p_struct_declarator_list(p):
   '''struct_declarator_list   : struct_declarator
                               | struct_declarator_list ',' struct_declarator
                               '''
   if len(p) == 2:
-    p[0] = p[1]
+    p[0] = ast_node("Struct Declaration List",value = '',type = p[1].type, children = [p[1]])
   else:
-    pass 
+    if p[1].name != 'Struct Declaration List':
+      p[1] = ast_node('Struct Declaration List',value = '', type = p[3].type, children = [])
+    p[1].children.append(p[3])
+    p[0] = p[1] 
 
 def p_struct_declarator(p):
   '''struct_declarator  : declarator
@@ -457,7 +470,7 @@ def p_struct_declarator(p):
                         | declarator ':' constant_expression
                         '''
   if len(p) == 2:
-    pass
+    p[0] = p[1]
   elif len(p) == 3:
     pass
   else: 
@@ -500,11 +513,6 @@ def p_type_qualifier(p):
                       '''
   p[0] = ast_node("Qualifier Declaration",value = "",type =p[1],children = [])  
 
-def p_function_specifier(p):
-  '''function_specifier   : INLINE
-                          | NORETURN
-                          '''
-  p[0] = ast_node("Function Specification",value = "",type =p[1],children = [])
 def p_declarator(p):
   '''declarator   : pointer direct_declarator
                   | direct_declarator

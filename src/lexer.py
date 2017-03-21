@@ -33,10 +33,8 @@ reserved = {
     'volatile' : 'VOLATILE',
     'while' : 'WHILE',
     'restrict' : 'RESTRICT',
-    'inline' : 'INLINE',
     '_Complex' : 'COMPLEX', 
     '_Imaginary' : 'IMAGINARY',  
-    '_Noreturn' : 'NORETURN',  
     '_Static_assert' : 'STATIC_ASSERT', 
 }
 
