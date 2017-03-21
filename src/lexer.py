@@ -37,7 +37,6 @@ reserved = {
     '_Alignas' : 'ALIGNAS',
     '_Alignof' : 'ALIGNOF',
     '_Complex' : 'COMPLEX', 
-    '_Generic' : 'GENERIC',    
     '_Imaginary' : 'IMAGINARY',  
     '_Noreturn' : 'NORETURN',  
     '_Static_assert' : 'STATIC_ASSERT', 
