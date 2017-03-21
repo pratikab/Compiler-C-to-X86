@@ -316,7 +316,7 @@ def p_expression(p):
                   | expression ',' assignment_expression
                   '''
   if len(p) == 2:
-    p[0] = ast_node('Expression List',value = '', type = p[3].type, children = [p[1]])
+    p[0] = ast_node('Expression List',value = '', type = p[1].type, children = [p[1]])
   else:
     if p[1].name != 'Expression List':
       p[1] = ast_node('Expression List',value = '', type = p[3].type, children = [])
@@ -335,7 +335,7 @@ def p_declaration(p):
     p[0] = p[1]
   elif len(p) == 4:
     p[0] = ast_node("Declaration Statement",value = "",type =p[1].type ,children = [p[2]])
-    p[0].set_type(p[1].type)
+    #p[0].set_type(p[1].type)
   else:
     p[0] = p[1]
 
