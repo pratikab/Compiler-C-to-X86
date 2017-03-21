@@ -2,3 +2,4 @@
 src/parser.out
 src/parsetab.py
 test/graph.png
+test/test.c
