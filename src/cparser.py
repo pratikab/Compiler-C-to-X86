@@ -314,12 +314,10 @@ def p_expression(p):
                   | expression ',' assignment_expression
                   '''
   if len(p) == 2:
-    p[0] = ast_node(name = 'Expression List',value = '', type = p[1].type, children = [p[1]])
+    p[0] = p[1]
   else:
-    if p[1].name != 'Expression List':
-      p[1] = ast_node(name = 'Expression List',value = '', type = p[3].type, children = [])
-    p[1].children.append(p[3])
-    p[0] = p[1] 
+    p[0] = p[1]
+    p[0].children.append(p[3])
 def p_constant_expression(p):
   '''constant_expression  : conditional_expression
                           '''
@@ -355,12 +353,10 @@ def p_init_declarator_list(p):
                             | init_declarator_list ',' init_declarator
                             '''
   if len(p) == 2:
-    p[0] = ast_node('Declarator List',value = '', type = '', children = [p[1]])
+    p[0] = p[1]
   else:
-    if p[1].name != 'Declarator List':
-      p[1] = ast_node('Declarator List',value = '', type = '', children = [])
-    p[1].children.append(p[3])
-    p[0] = p[1] 
+    p[0] = p[1]
+    p[0].children.append(p[3])
 def p_init_declarator(p):
   '''init_declarator  : declarator
                       | declarator '=' initializer
@@ -427,12 +423,10 @@ def p_struct_declaration_list(p):
                               | struct_declaration_list struct_declaration
                               '''
   if len(p) == 2:
-    p[0] = ast_node("Struct Declaration List",value = '',type = p[1].type, children = [p[1]])
+    p[0] = p[1]
   else:
-    if p[1].name != 'Struct Declaration List':
-      p[1] = ast_node('Struct Declaration List',value = '', type = p[2].type, children = [])
-    p[1].children.append(p[2])
-    p[0] = p[1] 
+    p[0] = p[1]
+    p[0].children.append(p[2])
 
 def p_struct_declaration(p):
   '''struct_declaration   : specifier_qualifier_list ';'
@@ -442,7 +436,7 @@ def p_struct_declaration(p):
   if len(p) == 2:
     p[0] = p[1]
   elif len(p) == 4:
-    p[0] = ast_node("struct declarations",value = "",type =p[1].type ,children = [p[2]])
+    p[0] = ast_node("struct declarations",value = "",type =p[1].type ,children = [p[1],p[2]])
     #p[0].set_type(p[1].type)
   else:
     p[0] = p[1]
@@ -462,12 +456,10 @@ def p_struct_declarator_list(p):
                               | struct_declarator_list ',' struct_declarator
                               '''
   if len(p) == 2:
-    p[0] = ast_node("Struct Declaration List",value = '',type = p[1].type, children = [p[1]])
+    p[0] = p[1]
   else:
-    if p[1].name != 'Struct Declaration List':
-      p[1] = ast_node('Struct Declaration List',value = '', type = p[3].type, children = [])
-    p[1].children.append(p[3])
-    p[0] = p[1] 
+    p[0] = p[1]
+    p[0].children.append(p[3])
 
 def p_struct_declarator(p):
   '''struct_declarator  : declarator
