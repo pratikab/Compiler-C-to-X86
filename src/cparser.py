@@ -3,7 +3,6 @@ from lexer import *
 import ply.lex as lex
 import sys
 lex.lex()
-from ast_generator import *
 
 import pydot
 graph = pydot.Dot(graph_type='graph')
@@ -20,18 +19,19 @@ def add_node(p):
   return node
 
 class ast_node(object):
-  def __init__(self, name="", value="", type="", children="", modifiers="", dims=0, arraylen="", sym_entry="", lineno=0):
+  def __init__(self, name="", value="", type="", children="", modifiers="", dims=0, arraylen="", sym_entry="", lineno=0,tag = "",pydot_Node = None):
     self.name = name
     self.value = value
     self.type = type
     self.dims = dims
     self.lineno = lineno
     self.sym_entry = sym_entry
+    self.pydot_Node = None
     if modifiers:
         self.modifiers = modifiers
     else:
         self.modifiers = [ ]
-    if children:
+    if children :
       self.children = children
     else:
       self.children = [ ]
@@ -40,14 +40,19 @@ class ast_node(object):
     else:
       self.arraylen = [ ]
   def print_tree(self,depth):
-    for i in range(0,depth-1):
-      print "-",
-    print "+",
-    depth = depth + 1
-    print (self.name + " " + self.type+" "+str(self.value))
+    output = ""
+    if self.name is not "":
+      for i in range(0,depth-1):
+        print "-",
+      print "+",
+      depth = depth + 1
+      output = self.name + " " + self.type+" "+str(self.value)
+      print (output)
+    self.pydot_Node = add_node(output)
     if len(self.children) > 0 :
       for child in self.children : 
         child.print_tree(depth)
+        add_edge(self.pydot_Node,child.pydot_Node)
 
   def set_type(self,t):
     self.type = t
@@ -309,10 +314,10 @@ def p_expression(p):
                   | expression ',' assignment_expression
                   '''
   if len(p) == 2:
-    p[0] = ast_node('Expression List',value = '', type = p[1].type, children = [p[1]])
+    p[0] = ast_node(name = 'Expression List',value = '', type = p[1].type, children = [p[1]])
   else:
     if p[1].name != 'Expression List':
-      p[1] = ast_node('Expression List',value = '', type = p[3].type, children = [])
+      p[1] = ast_node(name = 'Expression List',value = '', type = p[3].type, children = [])
     p[1].children.append(p[3])
     p[0] = p[1] 
 def p_constant_expression(p):
@@ -797,10 +802,10 @@ def p_block_item_list(p):
                           '''
   
   if len(p) == 2:
-    p[0] = ast_node("BlockItem List",value = '',type = '', children = [p[1]])
+    p[0] = ast_node("Compound Statement",value = '',type = '', children = [p[1]])
   else:
-    if p[1].name != 'BlockItem List':
-      p[1] = ast_node('BlockItem List',value = '', type = '', children = [])
+    if p[1].name != 'Compound Statement':
+      p[1] = ast_node('Compound Statement',value = '', type = '', children = [])
     p[1].children.append(p[2])
     p[0] = p[1] 
 def p_block_item(p):
