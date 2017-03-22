@@ -906,9 +906,17 @@ def p_translation_unit(p):
   else:
     start.children.append(p[2])
 
-def p_external_declaration(p):
+def p_external_declaration_1(p):
   '''external_declaration   : function_definition
-                            | declaration
+                            '''
+  global symbol_table
+  global scope_level
+  del symbol_table[scope_level]
+  scope_level = scope_level - 1
+  p[0] = p[1]
+
+def p_external_declaration_2(p):
+  '''external_declaration   : declaration
                             '''
   p[0] = p[1]
 
@@ -916,12 +924,15 @@ def p_function_definition(p):
   '''function_definition  : declaration_specifiers declarator declaration_list compound_statement
                           | declaration_specifiers declarator compound_statement
                           '''
-  global scope_level
-  scope_level = scope_level + 1
   global symbol_table
+  global scope_level
+  # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
+  symbol_table[scope_level][p[2].value] = p[1].type
+  scope_level = scope_level + 1
   new_hash_table = {}
   symbol_table.append(new_hash_table)
   if len(p) == 4:
+    print p[2].value
     p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[3]])
   else:
     p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[3],p[4]])
