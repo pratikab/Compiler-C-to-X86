@@ -73,9 +73,11 @@ def p_primary_expression(p):
   for i in range(0,scope_level+1):
     if p[1].value in symbol_table[scope_level].keys():
       found = True
+      print symbol_table
       break
   if found == False:
     print "COMPILATION ERROR: Trying to access undeclared variable " + p[1].value
+    print symbol_table
     sys.exit()
   p[0] = ast_node("VarAccess",value = p[1].value,type ="",children = [])
 def p_primary_expression_1(p):
@@ -384,14 +386,14 @@ def p_init_declarator(p):
   global symbol_table
   if p[1].value in symbol_table[scope_level].keys():
     print "COMPILATION ERROR : Variable " + p[1].value + " already declared"
+    print symbol_table
     sys.exit()
   else:
     symbol_table[scope_level][p[1].value] = p[1].type
   if len(p) == 2:
-    p[0] = ast_node("VarDecl", value = p[1].value,type ="",children = [p[1]])
+    p[0] = ast_node("VarDecl", value = p[1].value,type =p[1].type,children = [p[1]])
   else:
-    p[0] = ast_node("VarDecl and Initialise",value = (p[1].value + "=" +p[3].value),type ="" ,children = [p[1],p[3]])  
-
+    p[0] = ast_node("VarDecl and Initialise",value = (p[1].value + "=" +p[3].value),type =p[1].type,children = [p[1],p[3]])  
 def p_storage_class_specifier(p):
   '''storage_class_specifier  : TYPEDEF
                               | EXTERN
@@ -547,7 +549,7 @@ def p_declarator(p):
   if len(p) == 2:
     p[0] = p[1]
   else: 
-    pass                 
+    p[0] = ast_node("PointerDeclaration",value = p[2].value,type =p[1].type+p[2].type,children = [])                
 
 def p_direct_declarator(p):
   '''direct_declarator  : identifier
@@ -589,7 +591,6 @@ def p_direct_declarator_10(p):
 def p_direct_declarator_11(p):
   '''direct_declarator  : direct_declarator '(' parameter_type_list ')'
                         '''
-  print "here"
   p[0] = ast_node("Function Arguments",value = "",type ="",children = [p[1],p[3]])
 def p_direct_declarator_12(p):
   '''direct_declarator  : direct_declarator '(' ')'
@@ -601,15 +602,20 @@ def p_direct_declarator_13(p):
 def p_pointer(p):
   '''pointer  : '*'
               '''
+  p[0] = ast_node("",value = "",type =p[1],children = [])
 def p_pointer_1(p):
   '''pointer  : '*' type_qualifier_list
               '''
+  p[0] = ast_node("",value = "",type =p[1]+" "+p[2].type,children = [])
 def p_pointer_2(p):
   '''pointer  : '*' pointer
               '''
+  p[0] = ast_node("",value = "",type =p[1]+" "+p[2].type,children = [])
 def p_pointer_3(p):
   '''pointer  : '*' type_qualifier_list pointer
               '''
+  p[0] = ast_node("",value = "",type =p[1]+" "+p[2].type+p[3].type,children = [])
+
 def p_type_qualifier_list(p):
   '''type_qualifier_list  : type_qualifier
                           | type_qualifier_list type_qualifier
@@ -617,15 +623,13 @@ def p_type_qualifier_list(p):
   if len(p) == 2:
     p[0] = p[1]
   else: 
-    pass 
+    p[0] = p[2]
+    p[0].type = p[1].type + " " + p[2].type
+
 def p_parameter_type_list(p):
   '''parameter_type_list  : parameter_list
-                          | parameter_list ',' ELLIPSIS
                           '''
-  if len(p) == 2:
-    p[0] = p[1]
-  else: 
-    pass 
+  p[0] = p[1] 
 def p_parameter_list(p):
   '''parameter_list   : parameter_declaration
                       | parameter_list ',' parameter_declaration
@@ -641,6 +645,14 @@ def p_parameter_list(p):
 def p_parameter_declaration(p):
   '''parameter_declaration  : declaration_specifiers declarator
                             '''
+  global scope_level
+  global symbol_table
+  if p[2].value in symbol_table[scope_level].keys():
+    print "COMPILATION ERROR : Variable " + p[2].value + " already declared"
+    print symbol_table
+    sys.exit()
+  else:
+    symbol_table[scope_level - 1][p[2].value] = p[2].type
   p[0] = ast_node('paramater',value = p[2].value, type = p[1].type, children = [])
 def p_parameter_declaration_1(p):
   '''parameter_declaration  : declaration_specifiers abstract_declarator
@@ -921,7 +933,10 @@ def p_external_declaration_1(p):
                             '''
   global symbol_table
   global scope_level
+  print symbol_table
+  print "hello"
   del symbol_table[scope_level]
+  print symbol_table
   scope_level = scope_level - 1
   p[0] = p[1]
 
@@ -940,6 +955,7 @@ def p_function_definition(p):
   symbol_table[scope_level][p[2].value] = p[1].type
   scope_level = scope_level + 1
   new_hash_table = {}
+  print "sdhkashd", scope_level
   symbol_table.append(new_hash_table)
   if len(p) == 4:
     p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[2],p[3]])
