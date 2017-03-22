@@ -7,6 +7,11 @@ lex.lex()
 import pydot
 graph = pydot.Dot(graph_type='graph')
 
+# Symbol Table is a list of hash tables
+symbol_table = []
+symbol_table.append({})
+scope_level = 0
+
 def add_edge(node_parent,node_child):
   graph.add_edge(pydot.Edge(node_parent, node_child))
 
@@ -365,6 +370,13 @@ def p_init_declarator(p):
   '''init_declarator  : declarator
                       | declarator '=' initializer
                       '''
+  global scope_level
+  global symbol_table
+  if p[1].value in symbol_table[scope_level].keys():
+    print "COMPILATION ERROR : Variable " + p[1].value + " already declared"
+    return
+  else:
+    symbol_table[scope_level][p[1].value] = p[1].type
   if len(p) == 2:
     p[0] = ast_node("VarDecl", value = p[1].value,type ="",children = [p[1]])
   else:
@@ -807,6 +819,7 @@ def p_block_item_list(p):
       p[1] = ast_node('Compound Statement',value = '', type = '', children = [])
     p[1].children.append(p[2])
     p[0] = p[1] 
+# todo : Add the concept of 'scope' in each blocks ('{' ... '}')
 def p_block_item(p):
   '''block_item     : declaration
                     | statement
@@ -880,7 +893,6 @@ def p_translation_unit(p):
   '''translation_unit   : external_declaration
                         | translation_unit external_declaration
                         '''
-  global start
   if len(p) == 2:
     start.children.append(p[1])
   else:
@@ -896,6 +908,11 @@ def p_function_definition(p):
   '''function_definition  : declaration_specifiers declarator declaration_list compound_statement
                           | declaration_specifiers declarator compound_statement
                           '''
+  global scope_level
+  scope_level = scope_level + 1
+  global symbol_table
+  new_hash_table = {}
+  symbol_table.append(new_hash_table)
   if len(p) == 4:
     p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[3]])
   else:
