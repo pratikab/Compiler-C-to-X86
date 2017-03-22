@@ -69,6 +69,14 @@ start = ast_node("START",value = "",type ="" ,children = [])
 def p_primary_expression(p):
   '''primary_expression   : identifier
                           '''
+  found = False
+  for i in range(0,scope_level+1):
+    if p[1].value in symbol_table[scope_level].keys():
+      found = True
+      break
+  if found == False:
+    print "COMPILATION ERROR: Trying to access undeclared variable " + p[1].value
+    sys.exit()
   p[0] = ast_node("VarAccess",value = p[1].value,type ="",children = [])
 def p_primary_expression_1(p):
   '''primary_expression   : constant
@@ -374,7 +382,7 @@ def p_init_declarator(p):
   global symbol_table
   if p[1].value in symbol_table[scope_level].keys():
     print "COMPILATION ERROR : Variable " + p[1].value + " already declared"
-    return
+    sys.exit()
   else:
     symbol_table[scope_level][p[1].value] = p[1].type
   if len(p) == 2:
