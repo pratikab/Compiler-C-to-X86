@@ -11,6 +11,10 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Check for ASCII value of character
 # todo: Type checking for ternary operator
 # todo: Add simple scoping rules for'{' to '}'
+# todo: Remove float lexical error.
+# todo: Add support for Struct
+# todo: Fix Pointer
+# todo: Multi-dimension array support
 
 # Symbol Table is a list of hash tables
 symbol_table = []
@@ -29,7 +33,7 @@ def add_node(p):
   return node
 
 class ast_node(object):
-  def __init__(self, name="", value="", type="", children="", modifiers="", dims=0, arraylen="", sym_entry="", lineno=0,tag = "",pydot_Node = None, is_var = False):
+  def __init__(self, name="", value="", type="", children="", modifiers="", dims=0, arraylen=[], sym_entry="", lineno=0,tag = "",pydot_Node = None, is_var = False):
     self.name = name
     self.value = value
     self.type = type
@@ -182,6 +186,23 @@ class ast_node(object):
         print "COMPILATION TERMINATED: error in logical operation types"
         sys.exit()
 
+    if self.name == 'ArrayAccess':
+      if fetch_type_from_symbol_table(self.children[1]) not in ['int','unsigned int']: 
+        print "COMPILATION TERMINATED: error in logical ArrayAccess"
+        sys.exit()
+
+    if self.name == 'ArrayDeclaration':
+       if fetch_type_from_symbol_table(self.children[0]) not in ['int','unsigned int']: 
+        print "COMPILATION TERMINATED: error in logical ArrayDeclaration"
+        sys.exit()
+
+    if self.name == 'InitializerList':
+      for child in self.children:
+        if child.name != "":
+          if child.type != self.type:
+            print "COMPILATION TERMINATED: error in logical InitializerList"
+            sys.exit()
+
   def print_tree(self,depth):
     output = ""
     if self.name is not "":
@@ -263,8 +284,7 @@ def p_postfix_expression(p):
 def p_postfix_expression_1(p):
   '''postfix_expression   : postfix_expression '[' expression ']'
                           '''
-  p[0] = ast_node("ArrayAccess",value = p[1].value,type =p[1].type,arraylen = p[3].value,children = [p[1],p[3]])  
-
+  p[0] = ast_node("ArrayAccess",value = p[1].value,type =p[1].type,children = [p[1],p[3]])  
 def p_postfix_expression_2(p):
   '''postfix_expression   : postfix_expression '(' ')'
                           '''                          
@@ -710,7 +730,8 @@ def p_direct_declarator_1(p):
 def p_direct_declarator_2(p):
   '''direct_declarator  : direct_declarator '[' ']'
                         '''
-  p[0] = ast_node("ArrayIntialize",value = p[1].value,type =p[1].type,arraylen = 0,children = [p[1]]) 
+  p[0] = ast_node("ArrayIntialize",value = p[1].value,type =p[1].type,children = [p[1]]) 
+  p[0].arraylen.append(0)
 # def p_direct_declarator_3(p):
 #   '''direct_declarator  : direct_declarator '[' '*' ']'
 #                         '''
@@ -735,7 +756,8 @@ def p_direct_declarator_2(p):
 def p_direct_declarator_3(p):
   '''direct_declarator  : direct_declarator '[' assignment_expression ']'
                         '''
-  p[0] = ast_node("Array Declaration",value = p[1].value,type ="", arraylen = p[3].value,children = [p[3]]) 
+  p[0] = ast_node("ArrayDeclaration",value = p[1].value,type ="",children = [p[3]],dims = p[1].dims + 1) 
+  p[0].arraylen.append(p[3].value)
 def p_direct_declarator_4(p):
   '''direct_declarator  : direct_declarator '(' parameter_type_list ')'
                         '''
@@ -911,10 +933,10 @@ def p_initializer_list(p):
                         | initializer_list ',' initializer
                         '''
   if len(p) == 2:
-    p[0] = ast_node("Initializer List",value = '',type = p[1].type, children = [p[1]])
+    p[0] = ast_node("InitializerList",value = '',type = p[1].type, children = [p[1]])
   else:
-    if p[1].name != 'Initializer List':
-      p[1] = ast_node('Initializer List',value = '', type = p[3].type, children = [])
+    if p[1].name != 'InitializerList':
+      p[1] = ast_node('InitializerList',value = '', type = p[3].type, children = [])
     p[1].children.append(p[3])
     p[0] = p[1] 
 
