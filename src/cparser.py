@@ -7,6 +7,11 @@ lex.lex()
 import pydot
 graph = pydot.Dot(graph_type='graph')
 
+# todo: Different function in grammar for modulus operation
+# todo: Check for ASCII value of character
+# todo: Type checking for ternary operator
+# todo: Add simple scoping rules for'{' to '}'
+
 # Symbol Table is a list of hash tables
 symbol_table = []
 symbol_table.append({})
@@ -45,17 +50,7 @@ class ast_node(object):
       self.arraylen = arraylen
     else:
       self.arraylen = [ ]
-  def print_tree(self,depth):
-    output = ""
-    if self.name is not "":
-      for i in range(0,depth-1):
-        print "-",
-      print "+",
-      depth = depth + 1
-      output = self.name + " " + self.type+" "+str(self.value)
-      print (output)
-    self.pydot_Node = add_node(output)
-
+  def traverse_tree(self):
     global scope_level
     global symbol_table
 
@@ -75,6 +70,9 @@ class ast_node(object):
         sys.exit()
       else:
         symbol_table[scope_level][self.value.split('=')[0]] = self.type
+        if self.type == 'void':
+          print "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " declared void"
+          sys.exit()
 
     if self.name == 'paramater':
       if self.value in symbol_table[scope_level].keys():
@@ -94,36 +92,129 @@ class ast_node(object):
 
     if len(self.children) > 0 :
       for child in self.children : 
-        child.print_tree(depth)
-        add_edge(self.pydot_Node,child.pydot_Node)
+        child.traverse_tree()
 
     if self.name == 'Function_definition':
       del symbol_table[scope_level]
       scope_level = scope_level - 1    
 
-    if self.name == 'Assignment':
-      type_rhs = ''
-      type_lhs = ''
-      for i in range(0,scope_level+1):
-        if self.children[0].is_var == True:
-          if self.children[0].value in symbol_table[i].keys():
-            type_lhs = symbol_table[i][self.children[0].value]
-        else:
-          type_lhs = self.children[0].type
-        if self.children[1].is_var == True:
-          if self.children[1].value in symbol_table[i].keys():
-            type_rhs = symbol_table[i][self.children[1].value]
-        else:
-          type_rhs = self.children[1].type
+    if self.name == 'Assignment' or self.name == "VarDecl and Initialise":
+      type_lhs = fetch_type_from_symbol_table(self.children[0])
+      type_rhs = fetch_type_from_symbol_table(self.children[1])
       if type_lhs != type_rhs:
-        print "COMPILATIONI TERMINATED: type checking failed in assignment : "+ self.children[0].value +', type  =' + type_lhs + ': ' + self.children[1].value + ', type  =' + type_rhs
+        print "COMPILATIONI TERMINATED: type checking failed in assignment. "+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
         sys.exit(0)
+
+    if self.name == 'Multiplication':
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['double','float','int','unsigned int']
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        _type = valid[min([valid.index(type_children_0), valid.index(type_children_1)])]
+        self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in multiplication types"
+        sys.exit()
+
+    if self.name == 'Addition':
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['double','float','int','unsigned int']
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        _type = valid[min([valid.index(type_children_0), valid.index(type_children_1)])]
+        self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in addition types"
+        sys.exit()
+
+    if self.name == 'Shift':
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['int','unsigned int']
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        _type = self.children[0].type
+        self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in shift types"
+        sys.exit()
+
+    if self.name == 'Relation':
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['double','float','int','unsigned int']
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        _type = 'BOOLEAN'
+        self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in Relation types"
+        sys.exit()
+
+    if self.name == 'EqualityExpression':
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['double','float','int','unsigned int']
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        _type = 'BOOLEAN'
+        self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in Equality expression types"
+        sys.exit()
+
+    if self.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['int','unsigned int']
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        _type = valid[min([valid.index(type_children_0), valid.index(type_children_1)])]
+        self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in logical operation types"
+        sys.exit()
+
+    if self.name == ('AND' or 'Logical AND' or'Logical OR'):
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['double','float','int','unsigned int']
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        _type = 'BOOLEAN'
+        self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in logical operation types"
+        sys.exit()
+
+  def print_tree(self,depth):
+    output = ""
+    if self.name is not "":
+      for i in range(0,depth-1):
+        print "-",
+      print "+",
+      depth = depth + 1
+      output = self.name + " " + self.type+" "+str(self.value)
+      print (output)
+    self.pydot_Node = add_node(output)
+    if len(self.children) > 0 :
+      for child in self.children : 
+        child.print_tree(depth)
+        add_edge(self.pydot_Node,child.pydot_Node)    
 
   def set_type(self,t):
     self.type = t
     if len(self.children) > 0 :
       for child in self.children : 
-        child.set_type(t)
+        if child.name != 'ConstantLiteral':
+          child.set_type(t)
+
+def fetch_type_from_symbol_table(child):
+  _type = ''
+  for i in range(0,scope_level+1):
+    if child.value in symbol_table[i].keys():
+      _type = symbol_table[i][child.value]
+      return _type
+    if child.is_var == False:
+      _type = child.type
+  return _type
+
+
 
 start = ast_node("START",value = "",type ="" ,children = [])
 def p_primary_expression(p):
@@ -191,6 +282,10 @@ def p_postfix_expression_5(p):
   '''postfix_expression   : postfix_expression INC_OP
                           | postfix_expression DEC_OP
                          '''
+  valid = {'int','float','double','unsigned int'}
+  if p[1].type not in valid:
+    print "COMPILATION TERMINATED: invalid use of operator: " + p[2]
+    sys.exit()
   p[0] = ast_node("UnaryOperator",value = p[1].value, type = p[1].type, children =[p[1]])
 def p_postfix_expression_6(p):
   '''postfix_expression   : '(' type_name ')' '{' initializer_list '}'
@@ -216,7 +311,15 @@ def p_unary_expression(p):
 def p_unary_expression_1(p):
   '''unary_expression   : INC_OP unary_expression
                         | DEC_OP unary_expression
-                        | unary_operator cast_expression
+                        '''
+  valid = {'int','float','double','unsigned int'}
+  if p[2].type not in valid:
+    print "COMPILATION TERMINATED: invalid use of operator: " + p[1]
+    sys.exit()
+  p[0] = ast_node("Unary Operator",value = p[2].value, type = p[2].type, children =[p[2]])
+
+def p_unary_expression_2(p):
+  '''unary_expression   : unary_operator cast_expression
                         '''
   p[0] = ast_node("Unary Operator",value = p[2].value, type = p[2].type, children =[p[2]])
 
@@ -253,7 +356,7 @@ def p_multiplicative_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node("Multiplication", value = "", type = '', children =[p[1],p[3]])                      
+    p[0] = ast_node("Multiplication", value = "", type = '', children =[p[1],p[3]])
 
 def p_additive_expression(p):
   '''additive_expression  : multiplicative_expression
@@ -1017,6 +1120,7 @@ if len(sys.argv) >= 2:
     data=myfile.read()
   print("File read complete")
   yacc.parse(data)
+  start.traverse_tree()
   start.print_tree(0)
   print ("Parsed successfully, writing graph to" + fd_2)
   graph.write_png(fd_2)
