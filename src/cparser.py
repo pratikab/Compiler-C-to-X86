@@ -109,16 +109,6 @@ start = ast_node("START",value = "",type ="" ,children = [])
 def p_primary_expression(p):
   '''primary_expression   : identifier
                           '''
-  # found = False
-  # for i in range(0,scope_level+1):
-  #   if p[1].value in symbol_table[scope_level].keys():
-  #     found = True
-  #     print symbol_table
-  #     break
-  # if found == False:
-  #   print "COMPILATION ERROR: Trying to access undeclared variable " + p[1].value
-  #   print symbol_table
-  #   sys.exit()
   p[0] = ast_node("VarAccess",value = p[1].value,type ="",children = [])
 def p_primary_expression_1(p):
   '''primary_expression   : constant
@@ -422,14 +412,6 @@ def p_init_declarator(p):
   '''init_declarator  : declarator
                       | declarator '=' initializer
                       '''
-  # global scope_level
-  # global symbol_table
-  # if p[1].value in symbol_table[scope_level].keys():
-  #   print "COMPILATION ERROR : Variable " + p[1].value + " already declared"
-  #   print symbol_table
-  #   sys.exit()
-  # else:
-  #   symbol_table[scope_level][p[1].value] = p[1].type
   if len(p) == 2:
     p[0] = ast_node("VarDecl", value = p[1].value,type =p[1].type,children = [p[1]])
   else:
@@ -685,14 +667,6 @@ def p_parameter_list(p):
 def p_parameter_declaration(p):
   '''parameter_declaration  : declaration_specifiers declarator
                             '''
-  # global scope_level
-  # global symbol_table
-  # if p[2].value in symbol_table[scope_level].keys():
-  #   print "COMPILATION ERROR : Variable " + p[2].value + " already declared"
-  #   print symbol_table
-  #   sys.exit()
-  # else:
-  #   symbol_table[scope_level - 1][p[2].value] = p[2].type
   p[0] = ast_node('paramater',value = p[2].value, type = p[1].type, children = [])
 def p_parameter_declaration_1(p):
   '''parameter_declaration  : declaration_specifiers abstract_declarator
@@ -971,10 +945,6 @@ def p_translation_unit(p):
 def p_external_declaration_1(p):
   '''external_declaration   : function_definition
                             '''
-  # global symbol_table
-  # global scope_level
-  # del symbol_table[scope_level]
-  # scope_level = scope_level - 1
   p[0] = p[1]
 
 def p_external_declaration_2(p):
@@ -986,13 +956,6 @@ def p_function_definition(p):
   '''function_definition  : declaration_specifiers declarator declaration_list compound_statement
                           | declaration_specifiers declarator compound_statement
                           '''
-  # global symbol_table
-  # global scope_level
-  # # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-  # symbol_table[scope_level][p[2].value] = p[1].type
-  # scope_level = scope_level + 1
-  # new_hash_table = {}
-  # symbol_table.append(new_hash_table)
   if len(p) == 4:
     p[0] = ast_node("Function_definition",value = p[2].value,type =p[1].type ,children = [p[2],p[3]])
   else:
