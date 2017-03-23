@@ -24,7 +24,7 @@ def add_node(p):
   return node
 
 class ast_node(object):
-  def __init__(self, name="", value="", type="", children="", modifiers="", dims=0, arraylen="", sym_entry="", lineno=0,tag = "",pydot_Node = None):
+  def __init__(self, name="", value="", type="", children="", modifiers="", dims=0, arraylen="", sym_entry="", lineno=0,tag = "",pydot_Node = None, is_var = False):
     self.name = name
     self.value = value
     self.type = type
@@ -32,6 +32,7 @@ class ast_node(object):
     self.lineno = lineno
     self.sym_entry = sym_entry
     self.pydot_Node = None
+    self.is_var = is_var
     if modifiers:
         self.modifiers = modifiers
     else:
@@ -83,6 +84,7 @@ class ast_node(object):
         # symbol_table[scope_level - 1][self.value] = p[2].type    Correct version todo : try to use p[2].type
         symbol_table[scope_level][self.value] = self.type
 
+
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
       symbol_table[scope_level][self.value] = self.type
@@ -99,6 +101,24 @@ class ast_node(object):
       del symbol_table[scope_level]
       scope_level = scope_level - 1    
 
+    if self.name == 'Assignment':
+      type_rhs = ''
+      type_lhs = ''
+      for i in range(0,scope_level+1):
+        if self.children[0].is_var == True:
+          if self.children[0].value in symbol_table[i].keys():
+            type_lhs = symbol_table[i][self.children[0].value]
+        else:
+          type_lhs = self.children[0].type
+        if self.children[1].is_var == True:
+          if self.children[1].value in symbol_table[i].keys():
+            type_rhs = symbol_table[i][self.children[1].value]
+        else:
+          type_rhs = self.children[1].type
+      if type_lhs != type_rhs:
+        print "COMPILATIONI TERMINATED: type checking failed in assignment : "+ self.children[0].value +', type  =' + type_lhs + ': ' + self.children[1].value + ', type  =' + type_rhs
+        sys.exit(0)
+
   def set_type(self,t):
     self.type = t
     if len(self.children) > 0 :
@@ -109,7 +129,7 @@ start = ast_node("START",value = "",type ="" ,children = [])
 def p_primary_expression(p):
   '''primary_expression   : identifier
                           '''
-  p[0] = ast_node("VarAccess",value = p[1].value,type ="",children = [])
+  p[0] = ast_node("VarAccess",value = p[1].value,type =p[1].type,children = [],is_var = p[1].is_var)
 def p_primary_expression_1(p):
   '''primary_expression   : constant
                           '''
@@ -125,7 +145,7 @@ def p_primary_expression_3(p):
 def p_identifier(p):
   '''identifier   : IDENTIFIER
                    '''
-  p[0] = ast_node("",value = p[1],type ="",children = []) 
+  p[0] = ast_node("",value = p[1],type ='',children = [],is_var=True) 
 def p_constant(p):
   '''constant             : ICONST
                           '''
@@ -377,7 +397,10 @@ def p_declaration(p):
   if len(p) == 2:
     p[0] = p[1]
   elif len(p) == 4:
-    temp = p[1].type + " "+ p[2].type
+    if p[2].type == '':
+      temp = p[1].type
+    else:
+      temp = p[1].type + " "+ p[2].type
     p[0] = ast_node("Declaration Statement",value = "",type =temp,children = [p[1],p[2]])
     p[0].set_type(temp)
   else:
