@@ -81,7 +81,7 @@ class ast_node(object):
         sys.exit()
       else:
         # symbol_table[scope_level - 1][self.value] = p[2].type    Correct version todo : try to use p[2].type
-        symbol_table[scope_level - 1][self.value] = self.type
+        symbol_table[scope_level][self.value] = self.type
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
@@ -90,14 +90,14 @@ class ast_node(object):
       new_hash_table = {}
       symbol_table.append(new_hash_table)
 
-    if self.name == 'external_declaration':
-      del symbol_table[scope_level]
-      scope_level = scope_level - 1
-
     if len(self.children) > 0 :
       for child in self.children : 
         child.print_tree(depth)
         add_edge(self.pydot_Node,child.pydot_Node)
+
+    if self.name == 'Function_definition':
+      del symbol_table[scope_level]
+      scope_level = scope_level - 1    
 
   def set_type(self,t):
     self.type = t
