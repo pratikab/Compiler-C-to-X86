@@ -563,42 +563,43 @@ def p_direct_declarator_2(p):
   '''direct_declarator  : direct_declarator '[' ']'
                         '''
   p[0] = ast_node("ArrayIntialize",value = p[1].value,type =p[1].type,arraylen = 0,children = [p[1]]) 
-def p_direct_declarator_3(p):
-  '''direct_declarator  : direct_declarator '[' '*' ']'
-                        '''
-  p[0] = p[1]
-def p_direct_declarator_4(p):
-  '''direct_declarator  : direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-                        | direct_declarator '[' STATIC assignment_expression ']'
-                        '''
+# def p_direct_declarator_3(p):
+#   '''direct_declarator  : direct_declarator '[' '*' ']'
+#                         '''
+#   p[0] = p[1]
+# def p_direct_declarator_4(p):
+#   '''direct_declarator  : direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
+#                         | direct_declarator '[' STATIC assignment_expression ']'
+#                         '''
 
-def p_direct_declarator_5(p):
-  '''direct_declarator  : direct_declarator '[' type_qualifier_list '*' ']'
-                        '''
-def p_direct_declarator_7(p):
-  '''direct_declarator  : direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-                        '''
-def p_direct_declarator_8(p):
-  '''direct_declarator  : direct_declarator '[' type_qualifier_list assignment_expression ']'
-                        '''
-def p_direct_declarator_9(p):
-  '''direct_declarator  : direct_declarator '[' type_qualifier_list ']'
-                       '''
-def p_direct_declarator_10(p):
+# def p_direct_declarator_5(p):
+#   '''direct_declarator  : direct_declarator '[' type_qualifier_list '*' ']'
+#                         '''
+# def p_direct_declarator_7(p):
+#   '''direct_declarator  : direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
+#                         '''
+# def p_direct_declarator_8(p):
+#   '''direct_declarator  : direct_declarator '[' type_qualifier_list assignment_expression ']'
+#                         '''
+# def p_direct_declarator_9(p):
+#   '''direct_declarator  : direct_declarator '[' type_qualifier_list ']'
+#                        '''
+def p_direct_declarator_3(p):
   '''direct_declarator  : direct_declarator '[' assignment_expression ']'
                         '''
   p[0] = ast_node("Array Declaration",value = p[1].value,type ="", arraylen = p[3].value,children = [p[3]]) 
-def p_direct_declarator_11(p):
+def p_direct_declarator_4(p):
   '''direct_declarator  : direct_declarator '(' parameter_type_list ')'
                         '''
   p[0] = ast_node("Function Arguments",value = p[1].value,type ="",children = [p[1],p[3]])
-def p_direct_declarator_12(p):
+def p_direct_declarator_5(p):
   '''direct_declarator  : direct_declarator '(' ')'
                         '''
   p[0] = p[1] # blank function declare e.g int main()
-def p_direct_declarator_13(p):
+def p_direct_declarator_6(p):
   '''direct_declarator  : direct_declarator '(' identifier_list ')'
                         '''
+  p[0] = ast_node("Function Arguments",value = p[1].value,type ="",children = [p[1],p[3]])
 def p_pointer(p):
   '''pointer  : '*'
               '''
@@ -667,9 +668,12 @@ def p_identifier_list(p):
                       | identifier_list ',' identifier
                       '''
   if len(p) == 2:
-    p[0] = ast_node("Variable Declaration",value = p[1].value,type ="",children = [])  
-  else: 
-    pass 
+    p[0] = ast_node('identifier_list',value = p[1].value, type = "", children = [p[1]])
+  else:
+    if p[1].name != 'identifier_list':
+      p[1] = ast_node('identifier_list',value = "", type = "", children = [])
+    p[1].children.append(p[3])
+    p[0] = p[1]
 
 def p_type_name(p):
   '''type_name        : specifier_qualifier_list abstract_declarator
@@ -696,61 +700,61 @@ def p_direct_abstract_declarator(p):
 def p_direct_abstract_declarator_1(p):
   '''direct_abstract_declarator   : '[' ']'
                                   '''
+# def p_direct_abstract_declarator_2(p):
+#   '''direct_abstract_declarator   : '[' '*' ']'
+#                                   '''
+# def p_direct_abstract_declarator_3(p):
+#   '''direct_abstract_declarator   : '[' STATIC type_qualifier_list assignment_expression ']'
+#                                   '''
+# def p_direct_abstract_declarator_4(p):
+#   '''direct_abstract_declarator   : '[' STATIC assignment_expression ']'
+#                                    '''
+# def p_direct_abstract_declarator_5(p):
+#   '''direct_abstract_declarator   : '[' type_qualifier_list STATIC assignment_expression ']'
+#                                   '''
+# def p_direct_abstract_declarator_6(p):
+#   '''direct_abstract_declarator   : '[' type_qualifier_list assignment_expression ']'
+#                                   '''
+# def p_direct_abstract_declarator_7(p):
+#   '''direct_abstract_declarator   : '[' type_qualifier_list ']'
+#                                   '''
 def p_direct_abstract_declarator_2(p):
-  '''direct_abstract_declarator   : '[' '*' ']'
-                                  '''
-def p_direct_abstract_declarator_3(p):
-  '''direct_abstract_declarator   : '[' STATIC type_qualifier_list assignment_expression ']'
-                                  '''
-def p_direct_abstract_declarator_4(p):
-  '''direct_abstract_declarator   : '[' STATIC assignment_expression ']'
-                                   '''
-def p_direct_abstract_declarator_5(p):
-  '''direct_abstract_declarator   : '[' type_qualifier_list STATIC assignment_expression ']'
-                                  '''
-def p_direct_abstract_declarator_6(p):
-  '''direct_abstract_declarator   : '[' type_qualifier_list assignment_expression ']'
-                                  '''
-def p_direct_abstract_declarator_7(p):
-  '''direct_abstract_declarator   : '[' type_qualifier_list ']'
-                                  '''
-def p_direct_abstract_declarator_8(p):
   '''direct_abstract_declarator   : '[' assignment_expression ']'
                                   '''
-def p_direct_abstract_declarator_9(p):
+def p_direct_abstract_declarator_3(p):
   '''direct_abstract_declarator   : direct_abstract_declarator '[' ']'
                                   '''
-def p_direct_abstract_declarator_10(p):
-  '''direct_abstract_declarator   : direct_abstract_declarator '[' '*' ']'
-                                  '''
-def p_direct_abstract_declarator_11(p):
-  '''direct_abstract_declarator   : direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-                                  '''
-def p_direct_abstract_declarator_12(p):
-  '''direct_abstract_declarator   : direct_abstract_declarator '[' STATIC assignment_expression ']'
-                                  '''
-def p_direct_abstract_declarator_13(p):
-  '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
-                                  '''
-def p_direct_abstract_declarator_14(p):
-  '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-                                  '''
-def p_direct_abstract_declarator_15(p):
-  '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list ']'
-                                  '''
-def p_direct_abstract_declarator_16(p):
+# def p_direct_abstract_declarator_4(p):
+#    '''direct_abstract_declarator   : direct_abstract_declarator '[' '*' ']'
+#                                   '''
+# def p_direct_abstract_declarator_11(p):
+#   '''direct_abstract_declarator   : direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
+#                                   '''
+# def p_direct_abstract_declarator_12(p):
+#   '''direct_abstract_declarator   : direct_abstract_declarator '[' STATIC assignment_expression ']'
+#                                   '''
+# def p_direct_abstract_declarator_13(p):
+#   '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
+#                                   '''
+# def p_direct_abstract_declarator_14(p):
+#   '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']'
+#                                   '''
+# def p_direct_abstract_declarator_15(p):
+#   '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list ']'
+#                                   '''
+def p_direct_abstract_declarator_5(p):
   '''direct_abstract_declarator   : direct_abstract_declarator '[' assignment_expression ']'
                                   '''
-def p_direct_abstract_declarator_17(p):
+def p_direct_abstract_declarator_6(p):
   '''direct_abstract_declarator   : '(' ')'
                                   '''
-def p_direct_abstract_declarator_18(p):
+def p_direct_abstract_declarator_7(p):
   '''direct_abstract_declarator   : '(' parameter_type_list ')'
                                   '''
-def p_direct_abstract_declarator_19(p):
+def p_direct_abstract_declarator_8(p):
   '''direct_abstract_declarator   : direct_abstract_declarator '(' ')'
                                   '''
-def p_direct_abstract_declarator_20(p):
+def p_direct_abstract_declarator_9(p):
   '''direct_abstract_declarator   : direct_abstract_declarator '(' parameter_type_list ')'
                                   '''
 def p_initializer(p):

@@ -1,5 +1,6 @@
 int main(){
-	int c=0,k=0;
-	if (k ==1 ) c = 1;
-	float c;
+	int d=0;
+}
+void test(a,b){
+	b = 1;	
 }
