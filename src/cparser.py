@@ -54,6 +54,46 @@ class ast_node(object):
       output = self.name + " " + self.type+" "+str(self.value)
       print (output)
     self.pydot_Node = add_node(output)
+
+    global scope_level
+    global symbol_table
+
+    if self.name == "VarAccess":
+      found = False
+      for i in range(0,scope_level+1):
+        if self.value in symbol_table[i].keys():
+          found = True
+          break
+      if found == False:
+        print "COMPILATION ERROR: Trying to access undeclared variable " + self.value
+        sys.exit()
+
+    if self.name.startswith("VarDecl"):
+      if self.value.split('=')[0] in symbol_table[scope_level].keys():
+        print "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " already declared"
+        sys.exit()
+      else:
+        symbol_table[scope_level][self.value.split('=')[0]] = self.type
+
+    if self.name == 'paramater':
+      if self.value in symbol_table[scope_level].keys():
+        print "COMPILATION ERROR : Variable " + self.value + " already declared"
+        sys.exit()
+      else:
+        # symbol_table[scope_level - 1][self.value] = p[2].type    Correct version todo : try to use p[2].type
+        symbol_table[scope_level - 1][self.value] = self.type
+
+    if self.name == 'Function_definition':
+      # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
+      symbol_table[scope_level][self.value] = self.type
+      scope_level = scope_level + 1
+      new_hash_table = {}
+      symbol_table.append(new_hash_table)
+
+    if self.name == 'external_declaration':
+      del symbol_table[scope_level]
+      scope_level = scope_level - 1
+
     if len(self.children) > 0 :
       for child in self.children : 
         child.print_tree(depth)
