@@ -20,7 +20,7 @@ graph = pydot.Dot(graph_type='graph')
 symbol_table = []
 symbol_table.append({})
 scope_level = 0
-
+current_function = ''
 def add_edge(node_parent,node_child):
   graph.add_edge(pydot.Edge(node_parent, node_child))
 
@@ -57,6 +57,7 @@ class ast_node(object):
   def traverse_tree(self):
     global scope_level
     global symbol_table
+    global current_function
 
     if self.name == "VarAccess":
       found = False
@@ -73,7 +74,7 @@ class ast_node(object):
         print "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " already declared"
         sys.exit()
       else:
-        symbol_table[scope_level][self.value.split('=')[0]] = self.type
+        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'']
         if self.type == 'void':
           print "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " declared void"
           sys.exit()
@@ -83,15 +84,15 @@ class ast_node(object):
         print "COMPILATION ERROR : Variable " + self.value + " already declared"
         sys.exit()
       else:
-        # symbol_table[scope_level - 1][self.value] = p[2].type    Correct version todo : try to use p[2].type
-        symbol_table[scope_level][self.value] = self.type
-
+        # symbol_table[scope_level - 1][self.value][0] = p[2].type    Correct version todo : try to use p[2].type
+        symbol_table[scope_level][self.value] = [self.type,'']
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-      symbol_table[scope_level][self.value] = self.type
+      symbol_table[scope_level][self.value] = [self.type, 'Function']
       scope_level = scope_level + 1
       new_hash_table = {}
+      current_function = self.value
       symbol_table.append(new_hash_table)
 
     if len(self.children) > 0 :
@@ -106,7 +107,7 @@ class ast_node(object):
       type_lhs = fetch_type_from_symbol_table(self.children[0])
       type_rhs = fetch_type_from_symbol_table(self.children[1])
       if type_lhs != type_rhs:
-        print "COMPILATIONI TERMINATED: type checking failed in assignment. "+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
+        print "COMPILATION TERMINATED: type checking failed in assignment. "+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
         sys.exit(0)
 
     if self.name == 'Multiplication':
@@ -203,6 +204,11 @@ class ast_node(object):
             print "COMPILATION TERMINATED: error in logical InitializerList"
             sys.exit()
 
+    if self.name == 'RETURN_EXPRESSION':
+      if fetch_type_from_symbol_table(self.children[0]) != symbol_table[0][current_function][0]:
+        print "COMPILAION TERMINATED: Return type of function("+ str(symbol_table[0][current_function][0])+") doesn't match variable type("+str(fetch_type_from_symbol_table(self.children[0]))+")"
+        sys.exit()
+
   def print_tree(self,depth):
     output = ""
     if self.name is not "":
@@ -225,11 +231,12 @@ class ast_node(object):
         if child.name != 'ConstantLiteral':
           child.set_type(t)
 
+# Works for both cases : when the child is variable and when it's a constant
 def fetch_type_from_symbol_table(child):
   _type = ''
   for i in range(0,scope_level+1):
     if child.value in symbol_table[i].keys():
-      _type = symbol_table[i][child.value]
+      _type = symbol_table[i][child.value][0]
       return _type
     if child.is_var == False:
       _type = child.type
@@ -1084,7 +1091,7 @@ def p_jump_statement_3(p):
 def p_jump_statement_4(p):
   '''jump_statement   : RETURN expression ';'
                       '''
-  p[0] = ast_node("RETURN", value = '', type = '', children = [p[2]])
+  p[0] = ast_node("RETURN_EXPRESSION", value = '', type = p[2].type, children = [p[2]])
 def p_translation_unit(p):
   '''translation_unit   : external_declaration
                         | translation_unit external_declaration
