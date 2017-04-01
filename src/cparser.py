@@ -7,11 +7,9 @@ lex.lex()
 import pydot
 graph = pydot.Dot(graph_type='graph')
 
-# todo: Different function in grammar for modulus operation
 # todo: Check for ASCII value of character
 # todo: Type checking for ternary operator
 # todo: Add simple scoping rules for'{' to '}'
-# todo: Remove float lexical error.
 # todo: Add support for Struct
 
 # Symbol Table is a list of hash tables
@@ -129,6 +127,16 @@ class ast_node(object):
       if (type_children_0 in valid) and (type_children_1 in valid):
         _type = valid[min([valid.index(type_children_0), valid.index(type_children_1)])]
         self.type = _type
+      else:
+        print "COMPILATION TERMINATED: error in multiplication types"
+        sys.exit()
+
+    if self.name == "Modulus Operation":
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      type_children_1 = fetch_type_from_symbol_table(self.children[1])
+      valid = ['int','unsigned int']      
+      if (type_children_0 in valid) and (type_children_1 in valid):
+        self.type = 'unsigned int'
       else:
         print "COMPILATION TERMINATED: error in multiplication types"
         sys.exit()
@@ -304,13 +312,12 @@ def p_identifier(p):
                    '''
   p[0] = ast_node("",value = p[1],type ='',children = [],is_var=True) 
 def p_constant(p):
-  '''constant             : ICONST
+  '''constant             : CONSTANT
                           '''
-  p[0] = ast_node("ConstantLiteral",value = p[1],type ="int",children = [])  
-def p_constant_1(p):
-  '''constant             : FCONST
-                          '''
-  p[0] = ast_node("ConstantLiteral",value = p[1],type ="float",children = [])  
+  if isinstance(p[1],int):
+    p[0] = ast_node("ConstantLiteral",value = p[1],type ="int",children = [])  
+  else:
+    p[0] = ast_node("ConstantLiteral",value = p[1],type ="float",children = [])  
 def p_constant_2(p):
   '''constant             : CCONST
                           '''
@@ -413,12 +420,19 @@ def p_multiplicative_expression(p):
   '''multiplicative_expression  : cast_expression
                                 | multiplicative_expression '*' cast_expression
                                 | multiplicative_expression '/' cast_expression
-                                | multiplicative_expression '%' cast_expression
                                 '''
   if len(p) == 2:
     p[0] = p[1]
   else:
     p[0] = ast_node("Multiplication", value = "", type = '', children =[p[1],p[3]])
+
+def p_multiplicative_expression_1(p):
+  '''multiplicative_expression  : multiplicative_expression '%' cast_expression
+                                '''
+  if len(p) == 2:
+    p[0] = p[1]
+  else:
+    p[0] = ast_node("Modulus Operation", value = "", type = '', children =[p[1],p[3]])
 
 def p_additive_expression(p):
   '''additive_expression  : multiplicative_expression

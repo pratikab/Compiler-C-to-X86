@@ -46,7 +46,7 @@ tokens = list(reserved.values()) + [
     'MOD_ASSIGN','AND_ASSIGN','XOR_ASSIGN','OR_ASSIGN','RIGHT_OP','LEFT_OP','INC_OP','DEC_OP',
     'PTR_OP','AND_OP','OR_OP','LE_OP','GE_OP','EQ_OP','NE_OP',
     #LITERALS
-    'IDENTIFIER','STRING_LITERAL', 'ICONST', 'FCONST', 'CCONST',
+    'IDENTIFIER','STRING_LITERAL', 'CONSTANT', 'CCONST',
 ]
 
 literals = [';','{','}',',',':','=','(',')','[',']','.','&','!','~','-','+','*','/','%','<','>','^','|','?']
@@ -89,14 +89,10 @@ def t_IDENTIFIER(t):
     return t
 
 # Integer Literal
-def t_ICONST(t):
-    r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
+def t_CONSTANT(t):
+    r'\.?[0-9][0-9eE_lLdDa-fA-F.xXpP]*'
     return t
 
-# Floating literal
-def t_FCONST(t): 
-    r'((\d+)(\.\d+)(e(\+|-)?(\d+))? | (\d+)e(\+|-)?(\d+))([lL]|[fF])?'
-    return t
 # String literal
 def t_STRING_LITERAL(t):
     r'\"([^\\\n]|(\\.))*?\"'
