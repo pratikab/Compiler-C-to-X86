@@ -14,7 +14,6 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Remove float lexical error.
 # todo: Add support for Struct
 # todo: Fix Pointer
-# todo: Multi-dimension array support
 
 # Symbol Table is a list of hash tables
 symbol_table = []
@@ -154,6 +153,15 @@ class ast_node(object):
         print "COMPILATION TERMINATED: error in Relation types"
         sys.exit()
 
+    if self.name == "UnaryOperator":
+      type_children_0 = fetch_type_from_symbol_table(self.children[0])
+      if type_children_0 not in {'int','float','double','unsigned int'}:
+        print type_children_0
+        print "COMPILATION TERMINATED: invalid use of Unary Operator"
+        sys.exit()
+      else:
+        self.type = type_children_0
+
     if self.name == 'EqualityExpression':
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
@@ -216,7 +224,10 @@ class ast_node(object):
         print "-",
       print "+",
       depth = depth + 1
-      output = self.name + " " + self.type+" "+str(self.value)
+      if len(self.arraylen) != 0:
+        output = self.name + " " + self.type+" "+str(self.value)+" "+str(self.arraylen)
+      else:
+        output = self.name + " " + self.type+" "+str(self.value)        
       print (output)
     self.pydot_Node = add_node(output)
     if len(self.children) > 0 :
@@ -309,10 +320,6 @@ def p_postfix_expression_5(p):
   '''postfix_expression   : postfix_expression INC_OP
                           | postfix_expression DEC_OP
                          '''
-  valid = {'int','float','double','unsigned int'}
-  if p[1].type not in valid:
-    print "COMPILATION TERMINATED: invalid use of operator: " + p[2]
-    sys.exit()
   p[0] = ast_node("UnaryOperator",value = p[1].value, type = p[1].type, children =[p[1]])
 def p_postfix_expression_6(p):
   '''postfix_expression   : '(' type_name ')' '{' initializer_list '}'
@@ -339,10 +346,6 @@ def p_unary_expression_1(p):
   '''unary_expression   : INC_OP unary_expression
                         | DEC_OP unary_expression
                         '''
-  valid = {'int','float','double','unsigned int'}
-  if p[2].type not in valid:
-    print "COMPILATION TERMINATED: invalid use of operator: " + p[1]
-    sys.exit()
   p[0] = ast_node("Unary Operator",value = p[2].value, type = p[2].type, children =[p[2]])
 
 def p_unary_expression_2(p):
@@ -763,7 +766,12 @@ def p_direct_declarator_2(p):
 def p_direct_declarator_3(p):
   '''direct_declarator  : direct_declarator '[' assignment_expression ']'
                         '''
-  p[0] = ast_node("ArrayDeclaration",value = p[1].value,type ="",children = [p[3]],dims = p[1].dims + 1) 
+  if p[1].is_var:
+    p[0] = ast_node("ArrayDeclaration",value = p[1].value,type ="",children = [p[3]],dims = p[1].dims + 1)
+  else:
+    p[0] = p[1]
+    p[0].children.append(p[3])
+    p[0].dims = p[0].dims+1
   p[0].arraylen.append(p[3].value)
 def p_direct_declarator_4(p):
   '''direct_declarator  : direct_declarator '(' parameter_type_list ')'
