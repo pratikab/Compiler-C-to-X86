@@ -13,7 +13,6 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Add simple scoping rules for'{' to '}'
 # todo: Remove float lexical error.
 # todo: Add support for Struct
-# todo: Fix Pointer
 
 # Symbol Table is a list of hash tables
 symbol_table = []
@@ -63,6 +62,7 @@ class ast_node(object):
       for i in range(0,scope_level+1):
         if self.value in symbol_table[i].keys():
           found = True
+          self.type = symbol_table[i][self.value][0]
           break
       if found == False:
         print "COMPILATION ERROR: Trying to access undeclared variable " + self.value
@@ -105,7 +105,20 @@ class ast_node(object):
     if self.name == 'Assignment' or self.name == "VarDecl and Initialise":
       type_lhs = fetch_type_from_symbol_table(self.children[0])
       type_rhs = fetch_type_from_symbol_table(self.children[1])
-      if type_lhs != type_rhs:
+      valid = ['double','float','int','unsigned int']
+      if type_rhs in valid and type_lhs in valid:
+        if valid.index(type_lhs) > valid.index(type_rhs):
+          print "COMPILATION TERMINATED: type checking failed in assignment. "+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
+          sys.exit(0)
+      elif type_lhs[-1:] == '*':
+        if type_rhs == type_lhs:
+          pass
+        elif type_rhs not in ['int','unsigned int']:
+          print "COMPILATION TERMINATED: type checking failed in assignment. "+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
+          sys.exit(0)
+        else:
+          print "WARNING: initialization makes pointer from integer without a cast"
+      elif type_lhs != type_rhs:
         print "COMPILATION TERMINATED: type checking failed in assignment. "+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
         sys.exit(0)
 
@@ -127,6 +140,12 @@ class ast_node(object):
       if (type_children_0 in valid) and (type_children_1 in valid):
         _type = valid[min([valid.index(type_children_0), valid.index(type_children_1)])]
         self.type = _type
+      elif type_children_0[-1:] == '*' or type_children_1[-1:] == '*':
+        if type_children_0 == type_children_1:
+          print "COMPILATION TERMINATED: Addition not permit for 2 pointers "
+          sys.exit(0)
+        elif type_rhs in ['int','unsigned int'] or type_lhs in ['int','unsigned int']:
+          print "WARNING: initialization makes pointer from integer without a cast"
       else:
         print "COMPILATION TERMINATED: error in addition types"
         sys.exit()
@@ -217,6 +236,12 @@ class ast_node(object):
         print "COMPILAION TERMINATED: Return type of function("+ str(symbol_table[0][current_function][0])+") doesn't match variable type("+str(fetch_type_from_symbol_table(self.children[0]))+")"
         sys.exit()
 
+    if self.name == "Pointer Dereference":
+      self.type = fetch_type_from_symbol_table(self.children[0]).split(' ')[0]
+
+    if self.name == "Address Of Operation":
+      self.type = fetch_type_from_symbol_table(self.children[0])+" *"
+
   def print_tree(self,depth):
     output = ""
     if self.name is not "":
@@ -227,7 +252,7 @@ class ast_node(object):
       if len(self.arraylen) != 0:
         output = self.name + " " + self.type+" "+str(self.value)+" "+str(self.arraylen)
       else:
-        output = self.name + " " + self.type+" "+str(self.value)        
+        output = self.name + " " + self.type+" "+str(self.value)
       print (output)
     self.pydot_Node = add_node(output)
     if len(self.children) > 0 :
@@ -245,6 +270,8 @@ class ast_node(object):
 # Works for both cases : when the child is variable and when it's a constant
 def fetch_type_from_symbol_table(child):
   _type = ''
+  if child.name == 'Pointer Dereference' or child.name == 'Address Of Operation':
+    return child.type
   for i in range(0,scope_level+1):
     if child.value in symbol_table[i].keys():
       _type = symbol_table[i][child.value][0]
@@ -351,7 +378,12 @@ def p_unary_expression_1(p):
 def p_unary_expression_2(p):
   '''unary_expression   : unary_operator cast_expression
                         '''
-  p[0] = ast_node("Unary Operator",value = p[2].value, type = p[2].type, children =[p[2]])
+  if p[1] == '*':
+    p[0] = ast_node("Pointer Dereference",value = p[2].value, type = p[2].type, children =[p[2]])
+  elif p[1] == '&':
+    p[0] = ast_node("Address Of Operation",value = p[2].value, type = p[2].type, children =[p[2]])
+  else:
+    p[0] = ast_node("Unary Operator",value = p[2].value, type = p[2].type, children =[p[2]])    
 
 def p_unary_expression_3(p):
   '''unary_expression   : SIZEOF '(' unary_expression ')'
