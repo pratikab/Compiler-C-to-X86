@@ -2,7 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+int NULL = 0;
+int printf();
 struct node {
    int data;
    int key;

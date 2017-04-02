@@ -1,0 +1,604 @@
+File read complete
+HELLO * 
++ START  
++ Declaration Statement int 
+- + Initializer List int 
+- - + VarDecl and Initialise int NULL=0
+- - - + ConstantLiteral int 0
++ Declaration Statement int 
+- + Initializer List int 
+- - + VarDecl int printf
++ Struct Declaration struct node 
+- + struct_declaration_list int 
+- - + struct declarations int 
+- - - + struct_declarator_list  
+- - + struct declarations int 
+- - - + struct_declarator_list  
+- - + struct declarations struct node 
+- - - + Struct Declaration struct node 
+- - - + struct_declarator_list * 
+- - - - + PointerDeclaration * next
++ Declaration Statement struct node * 
+- + Struct Declaration struct node * 
+- + Initializer List struct node * 
+- - + VarDecl and Initialise struct node * head=NULL
+- - - + PointerDeclaration struct node * head
+- - - + VarAccess struct node * NULL
++ Declaration Statement struct node * 
+- + Struct Declaration struct node * 
+- + Initializer List struct node * 
+- - + VarDecl and Initialise struct node * current=NULL
+- - - + PointerDeclaration struct node * current
+- - - + VarAccess struct node * NULL
++ Function_definition void printList
+- + Compound Statement  
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * ptr=head
+- - - - - + PointerDeclaration struct node * ptr
+- - - - - + VarAccess struct node * head
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "\n[ "
+- - + While Statement  
+- - - + EqualityExpression  
+- - - - + VarAccess  ptr
+- - - - + VarAccess  NULL
+- - - + Compound Statement  
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "(%d,%d) "
+- - - - - - + StructReference key ptr
+- - - - - - - + VarAccess  ptr
+- - - - - - + StructReference data ptr
+- - - - - - - + VarAccess  ptr
+- - - - + Assignment  
+- - - - - + VarAccess  ptr
+- - - - - + StructReference next ptr
+- - - - - - + VarAccess  ptr
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string " ]"
++ Function_definition void insertFirst
+- + Function Arguments  insertFirst
+- - + paramater_list  
+- - - + paramater int key
+- - - + paramater int data
+- + Compound Statement  
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * link=
+- - - - - + PointerDeclaration struct node * link
+- - - - - + Type Cast struct node * 
+- - - - - - + random shit struct node * 
+- - - - - - + FuncCallwithArgs struct node * malloc
+- - - - - - - + VarAccess struct node * malloc
+- - - - - - - + Argument List struct node * 
+- - - - - - - - + Size Of struct node * 
+- - - - - - - - - + Struct Declaration struct node * 
+- - + Assignment key 
+- - - + StructReference key link
+- - - - + VarAccess  link
+- - - + VarAccess  key
+- - + Assignment data 
+- - - + StructReference data link
+- - - - + VarAccess  link
+- - - + VarAccess  data
+- - + Assignment next 
+- - - + StructReference next link
+- - - - + VarAccess  link
+- - - + VarAccess  head
+- - + Assignment  
+- - - + VarAccess  head
+- - - + VarAccess  link
++ Function_definition struct node deleteFirst
+- + PointerDeclaration * deleteFirst
+- + Compound Statement  
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * tempLink=head
+- - - - - + PointerDeclaration struct node * tempLink
+- - - - - + VarAccess struct node * head
+- - + Assignment  
+- - - + VarAccess  head
+- - - + StructReference next head
+- - - - + VarAccess  head
+- - + RETURN_EXPRESSION  
+- - - + VarAccess  tempLink
++ Function_definition bool isEmpty
+- + Compound Statement  
+- - + RETURN_EXPRESSION  
+- - - + EqualityExpression  
+- - - - + VarAccess  head
+- - - - + VarAccess  NULL
++ Function_definition int length
+- + Compound Statement  
+- - + Declaration Statement int 
+- - - + Initializer List int 
+- - - - + VarDecl and Initialise int length=0
+- - - - - + ConstantLiteral int 0
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl struct node * current
+- - - - - + PointerDeclaration struct node * current
+- - + For Statement  
+- - - + Assignment  
+- - - - + VarAccess  current
+- - - - + VarAccess  head
+- - - + EqualityExpression  
+- - - - + VarAccess  current
+- - - - + VarAccess  NULL
+- - - + Assignment  
+- - - - + VarAccess  current
+- - - - + StructReference next current
+- - - - - + VarAccess  current
+- - - + Compound Statement  
+- - - - + UnaryOperator  length
+- - - - - + VarAccess  length
+- - + RETURN_EXPRESSION  
+- - - + VarAccess  length
++ Function_definition struct node find
+- + PointerDeclaration * find
+- + Compound Statement  
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * current=head
+- - - - - + PointerDeclaration struct node * current
+- - - - - + VarAccess struct node * head
+- - + IF Statement  
+- - - + EqualityExpression  
+- - - - + VarAccess  head
+- - - - + VarAccess  NULL
+- - - + Compound Statement  
+- - - - + RETURN_EXPRESSION  
+- - - - - + VarAccess  NULL
+- - + While Statement  
+- - - + EqualityExpression  
+- - - - + StructReference key current
+- - - - - + VarAccess  current
+- - - - + VarAccess  key
+- - - + Compound Statement  
+- - - - + IF-Else Statement  
+- - - - - + EqualityExpression  
+- - - - - - + StructReference next current
+- - - - - - - + VarAccess  current
+- - - - - - + VarAccess  NULL
+- - - - - + Compound Statement  
+- - - - - - + RETURN_EXPRESSION  
+- - - - - - - + VarAccess  NULL
+- - - - - + Compound Statement  
+- - - - - - + Assignment  
+- - - - - - - + VarAccess  current
+- - - - - - - + StructReference next current
+- - - - - - - - + VarAccess  current
+- - + RETURN_EXPRESSION  
+- - - + VarAccess  current
++ Function_definition struct node delete
+- + PointerDeclaration * delete
+- + Compound Statement  
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * current=head
+- - - - - + PointerDeclaration struct node * current
+- - - - - + VarAccess struct node * head
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * previous=NULL
+- - - - - + PointerDeclaration struct node * previous
+- - - - - + VarAccess struct node * NULL
+- - + IF Statement  
+- - - + EqualityExpression  
+- - - - + VarAccess  head
+- - - - + VarAccess  NULL
+- - - + Compound Statement  
+- - - - + RETURN_EXPRESSION  
+- - - - - + VarAccess  NULL
+- - + While Statement  
+- - - + EqualityExpression  
+- - - - + StructReference key current
+- - - - - + VarAccess  current
+- - - - + VarAccess  key
+- - - + Compound Statement  
+- - - - + IF-Else Statement  
+- - - - - + EqualityExpression  
+- - - - - - + StructReference next current
+- - - - - - - + VarAccess  current
+- - - - - - + VarAccess  NULL
+- - - - - + Compound Statement  
+- - - - - - + RETURN_EXPRESSION  
+- - - - - - - + VarAccess  NULL
+- - - - - + Compound Statement  
+- - - - - - + Assignment  
+- - - - - - - + VarAccess  previous
+- - - - - - - + VarAccess  current
+- - - - - - + Assignment  
+- - - - - - - + VarAccess  current
+- - - - - - - + StructReference next current
+- - - - - - - - + VarAccess  current
+- - + IF-Else Statement  
+- - - + EqualityExpression  
+- - - - + VarAccess  current
+- - - - + VarAccess  head
+- - - + Compound Statement  
+- - - - + Assignment  
+- - - - - + VarAccess  head
+- - - - - + StructReference next head
+- - - - - - + VarAccess  head
+- - - + Compound Statement  
+- - - - + Assignment next 
+- - - - - + StructReference next previous
+- - - - - - + VarAccess  previous
+- - - - - + StructReference next current
+- - - - - - + VarAccess  current
+- - + RETURN_EXPRESSION  
+- - - + VarAccess  current
++ Function_definition void sort
+- + Compound Statement  
+- - + Declaration Statement int 
+- - - + Initializer List int 
+- - - - + VarDecl int i
+- - - - + VarDecl int j
+- - - - + VarDecl int k
+- - - - + VarDecl int tempKey
+- - - - + VarDecl int tempData
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl struct node * current
+- - - - - + PointerDeclaration struct node * current
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl struct node * next
+- - - - - + PointerDeclaration struct node * next
+- - + Declaration Statement int 
+- - - + Initializer List int 
+- - - - + VarDecl and Initialise int size=length
+- - - - - + FuncCall int length
+- - - - - - + VarAccess int length
+- - + Assignment  
+- - - + VarAccess  k
+- - - + VarAccess  size
+- - + For Statement  
+- - - + Assignment  
+- - - - + VarAccess  i
+- - - - + ConstantLiteral int 0
+- - - + Relation  
+- - - - + VarAccess  i
+- - - - + Addition  
+- - - - - + VarAccess  size
+- - - - - + ConstantLiteral int 1
+- - - + UnaryOperator  i
+- - - - + VarAccess  i
+- - - - + UnaryOperator  k
+- - - - - + VarAccess  k
+- - - + Compound Statement  
+- - - - + Assignment  
+- - - - - + VarAccess  current
+- - - - - + VarAccess  head
+- - - - + Assignment  
+- - - - - + VarAccess  next
+- - - - - + StructReference next head
+- - - - - - + VarAccess  head
+- - - - + For Statement  
+- - - - - + Assignment  
+- - - - - - + VarAccess  j
+- - - - - - + ConstantLiteral int 1
+- - - - - + Relation  
+- - - - - - + VarAccess  j
+- - - - - - + VarAccess  k
+- - - - - + UnaryOperator  j
+- - - - - - + VarAccess  j
+- - - - - + Compound Statement  
+- - - - - - + IF Statement  
+- - - - - - - + Relation  
+- - - - - - - - + StructReference data current
+- - - - - - - - - + VarAccess  current
+- - - - - - - - + StructReference data next
+- - - - - - - - - + VarAccess  next
+- - - - - - - + Compound Statement  
+- - - - - - - - + Assignment  
+- - - - - - - - - + VarAccess  tempData
+- - - - - - - - - + StructReference data current
+- - - - - - - - - - + VarAccess  current
+- - - - - - - - + Assignment data 
+- - - - - - - - - + StructReference data current
+- - - - - - - - - - + VarAccess  current
+- - - - - - - - - + StructReference data next
+- - - - - - - - - - + VarAccess  next
+- - - - - - - - + Assignment data 
+- - - - - - - - - + StructReference data next
+- - - - - - - - - - + VarAccess  next
+- - - - - - - - - + VarAccess  tempData
+- - - - - - - - + Assignment  
+- - - - - - - - - + VarAccess  tempKey
+- - - - - - - - - + StructReference key current
+- - - - - - - - - - + VarAccess  current
+- - - - - - - - + Assignment key 
+- - - - - - - - - + StructReference key current
+- - - - - - - - - - + VarAccess  current
+- - - - - - - - - + StructReference key next
+- - - - - - - - - - + VarAccess  next
+- - - - - - - - + Assignment key 
+- - - - - - - - - + StructReference key next
+- - - - - - - - - - + VarAccess  next
+- - - - - - - - - + VarAccess  tempKey
+- - - - - - + Assignment  
+- - - - - - - + VarAccess  current
+- - - - - - - + StructReference next current
+- - - - - - - - + VarAccess  current
+- - - - - - + Assignment  
+- - - - - - - + VarAccess  next
+- - - - - - - + StructReference next next
+- - - - - - - - + VarAccess  next
++ Function_definition void reverse
+- + Function Arguments  reverse
+- - + paramater_list  
+- - - + paramater struct node head_ref
+- + Compound Statement  
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * prev=NULL
+- - - - - + PointerDeclaration struct node * prev
+- - - - - + VarAccess struct node * NULL
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * current=head_ref
+- - - - - + PointerDeclaration struct node * current
+- - - - - + Pointer Dereference struct node * head_ref
+- - - - - - + VarAccess struct node * head_ref
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl struct node * next
+- - - - - + PointerDeclaration struct node * next
+- - + While Statement  
+- - - + EqualityExpression  
+- - - - + VarAccess  current
+- - - - + VarAccess  NULL
+- - - + Compound Statement  
+- - - - + Assignment  
+- - - - - + VarAccess  next
+- - - - - + StructReference next current
+- - - - - - + VarAccess  current
+- - - - + Assignment next 
+- - - - - + StructReference next current
+- - - - - - + VarAccess  current
+- - - - - + VarAccess  prev
+- - - - + Assignment  
+- - - - - + VarAccess  prev
+- - - - - + VarAccess  current
+- - - - + Assignment  
+- - - - - + VarAccess  current
+- - - - - + VarAccess  next
+- - + Assignment  
+- - - + Pointer Dereference  head_ref
+- - - - + VarAccess  head_ref
+- - - + VarAccess  prev
++ Function_definition int main
+- + Compound Statement  
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 1
+- - - - + ConstantLiteral int 10
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 2
+- - - - + ConstantLiteral int 20
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 3
+- - - - + ConstantLiteral int 30
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 4
+- - - - + ConstantLiteral int 1
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 5
+- - - - + ConstantLiteral int 40
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 6
+- - - - + ConstantLiteral int 56
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "Original List: "
+- - + FuncCall  printList
+- - - + VarAccess  printList
+- - + While Statement  
+- - - + Unary Operator  isEmpty
+- - - - + FuncCall  isEmpty
+- - - - - + VarAccess  isEmpty
+- - - + Compound Statement  
+- - - - + Declaration Statement struct node * 
+- - - - - + Struct Declaration struct node * 
+- - - - - + Initializer List struct node * 
+- - - - - - + VarDecl and Initialise struct node * temp=deleteFirst
+- - - - - - - + PointerDeclaration struct node * temp
+- - - - - - - + FuncCall struct node * deleteFirst
+- - - - - - - - + VarAccess struct node * deleteFirst
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "\nDeleted value:"
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "(%d,%d) "
+- - - - - - + StructReference key temp
+- - - - - - - + VarAccess  temp
+- - - - - - + StructReference data temp
+- - - - - - - + VarAccess  temp
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "\nList after deleting all items: "
+- - + FuncCall  printList
+- - - + VarAccess  printList
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 1
+- - - - + ConstantLiteral int 10
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 2
+- - - - + ConstantLiteral int 20
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 3
+- - - - + ConstantLiteral int 30
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 4
+- - - - + ConstantLiteral int 1
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 5
+- - - - + ConstantLiteral int 40
+- - + FuncCallwithArgs  insertFirst
+- - - + VarAccess  insertFirst
+- - - + Argument List int 
+- - - - + ConstantLiteral int 6
+- - - - + ConstantLiteral int 56
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "\nRestored List: "
+- - + FuncCall  printList
+- - - + VarAccess  printList
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "\n"
+- - + Declaration Statement struct node * 
+- - - + Struct Declaration struct node * 
+- - - + Initializer List struct node * 
+- - - - + VarDecl and Initialise struct node * foundLink=find
+- - - - - + PointerDeclaration struct node * foundLink
+- - - - - + FuncCallwithArgs struct node * find
+- - - - - - + VarAccess struct node * find
+- - - - - - + Argument List struct node * 
+- - - - - - - + ConstantLiteral int 4
+- - + IF-Else Statement  
+- - - + EqualityExpression  
+- - - - + VarAccess  foundLink
+- - - - + VarAccess  NULL
+- - - + Compound Statement  
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "Element found: "
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "(%d,%d) "
+- - - - - - + StructReference key foundLink
+- - - - - - - + VarAccess  foundLink
+- - - - - - + StructReference data foundLink
+- - - - - - - + VarAccess  foundLink
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "\n"
+- - - + Compound Statement  
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "Element not found."
+- - + FuncCallwithArgs  delete
+- - - + VarAccess  delete
+- - - + Argument List int 
+- - - - + ConstantLiteral int 4
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "List after deleting an item: "
+- - + FuncCall  printList
+- - - + VarAccess  printList
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "\n"
+- - + Assignment  
+- - - + VarAccess  foundLink
+- - - + FuncCallwithArgs  find
+- - - - + VarAccess  find
+- - - - + Argument List int 
+- - - - - + ConstantLiteral int 4
+- - + IF-Else Statement  
+- - - + EqualityExpression  
+- - - - + VarAccess  foundLink
+- - - - + VarAccess  NULL
+- - - + Compound Statement  
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "Element found: "
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "(%d,%d) "
+- - - - - - + StructReference key foundLink
+- - - - - - - + VarAccess  foundLink
+- - - - - - + StructReference data foundLink
+- - - - - - - + VarAccess  foundLink
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "\n"
+- - - + Compound Statement  
+- - - - + FuncCallwithArgs  printf
+- - - - - + VarAccess  printf
+- - - - - + Argument List string 
+- - - - - - + StringLiteral string "Element not found."
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "\n"
+- - + FuncCall  sort
+- - - + VarAccess  sort
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "List after sorting the data: "
+- - + FuncCall  printList
+- - - + VarAccess  printList
+- - + FuncCallwithArgs  reverse
+- - - + VarAccess  reverse
+- - - + Argument List  
+- - - - + Address Of Operation  head
+- - - - - + VarAccess  head
+- - + FuncCallwithArgs  printf
+- - - + VarAccess  printf
+- - - + Argument List string 
+- - - - + StringLiteral string "\nList after reversing the data: "
+- - + FuncCall  printList
+- - - + VarAccess  printList
+lineno 13 -WARNING: initialization makes pointer from integer without a cast
+lineno 14 -WARNING: initialization makes pointer from integer without a cast
+lineno 22 -COMPILATION TERMINATED: error in Equality expression types

@@ -65,22 +65,22 @@ class ast_node(object):
           self.type = symbol_table[i][self.value][0]
           break
       if found == False:
-        print self.lineno, self.lineno, self.lineno, "COMPILATION ERROR: Trying to access undeclared variable " + self.value
+        print self.lineno, "COMPILATION ERROR: Trying to access undeclared variable " + self.value
         sys.exit()
 
     if self.name.startswith("VarDecl"):
       if self.value.split('=')[0] in symbol_table[scope_level].keys():
-        print self.lineno, self.lineno, self.lineno, "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " already declared"
+        print self.lineno, "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " already declared"
         sys.exit()
       else:
         symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'']
-        if self.type == 'void':
-          print self.lineno, self.lineno, self.lineno, "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " declared void"
+        if self.type == 'void' and scope_level != 0:
+          print self.lineno, "COMPILATION ERROR : Variable " + self.value.split('=')[0] + " declared void"
           sys.exit()
 
     if self.name == 'paramater':
       if self.value in symbol_table[scope_level].keys():
-        print self.lineno, self.lineno, self.lineno, "COMPILATION ERROR : Variable " + self.value + " already declared"
+        print self.lineno, "COMPILATION ERROR : Variable " + self.value + " already declared"
         sys.exit()
       else:
         # symbol_table[scope_level - 1][self.value][0] = p[2].type    Correct version todo : try to use p[2].type
@@ -88,6 +88,7 @@ class ast_node(object):
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
+      print scope_level
       symbol_table[scope_level][self.value] = [self.type, 'Function']
       scope_level = scope_level + 1
       new_hash_table = {}
@@ -923,18 +924,24 @@ def p_type_name(p):
                       '''
   if len(p) == 2:
     p[0] = p[1]
-  else: 
-    pass 
+  else:
+    p[0] = ast_node('random shit',lineno = p[1].lineno)
 
 def p_abstract_declarator(p):
   '''abstract_declarator  : pointer
-                          | direct_abstract_declarator
-                          | pointer direct_abstract_declarator
                           '''
-  if len(p) == 2:
-    p[0] = p[1]
-  else: 
-    pass 
+  print "HELLO" , p[1].type, p[1].value
+  p[0] = p[1]
+
+def p_abstract_declarator_1(p):
+  '''abstract_declarator  : direct_abstract_declarator
+                          '''
+  print "WORLD"
+  p[0] = p[1]
+
+def p_abstract_declarator_2(p):
+  '''abstract_declarator  : pointer direct_abstract_declarator
+                          '''
 
 def p_direct_abstract_declarator(p):
   '''direct_abstract_declarator   : '(' abstract_declarator ')'
@@ -1089,7 +1096,7 @@ def p_block_item_list(p):
                           '''
   
   if len(p) == 2:
-    p[0] = ast_node("Compound Statement",value = '',type = '', children = [p[1]], lineno = p[1].lineno)
+    p[0] = ast_node("Compound Statement",value = '',type = '', children = [p[1]], lineno = p.lineno(1))
   else:
     if p[1].name != 'Compound Statement':
       p[1] = ast_node('Compound Statement',value = '', type = '', children = [], lineno = p[1].lineno)
@@ -1222,8 +1229,8 @@ if len(sys.argv) >= 2:
     data=myfile.read()
   print("File read complete")
   yacc.parse(data)
-  start.traverse_tree()
   start.print_tree(0)
+  start.traverse_tree()
   print ("Parsed successfully, writing graph to" + fd_2)
   graph.write_png(fd_2)
   print ("Write successful")
