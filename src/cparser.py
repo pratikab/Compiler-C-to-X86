@@ -8,8 +8,6 @@ import pydot
 graph = pydot.Dot(graph_type='graph')
 
 # todo: Check for ASCII value of character
-# todo: Type checking for ternary operator
-# todo: Add simple scoping rules for'{' to '}'
 # todo: Add support for Struct
 
 # Symbol Table is a list of hash tables
@@ -17,6 +15,9 @@ symbol_table = []
 symbol_table.append({})
 scope_level = 0
 current_function = ''
+# Checks if the 'Compound Statement' is associated with a function or not
+current_function_used = False
+
 def add_edge(node_parent,node_child):
   graph.add_edge(pydot.Edge(node_parent, node_child))
 
@@ -54,6 +55,7 @@ class ast_node(object):
     global scope_level
     global symbol_table
     global current_function
+    global current_function_used
 
     if self.name == "VarAccess":
       found = False
@@ -91,14 +93,24 @@ class ast_node(object):
       new_hash_table = {}
       current_function = self.value
       symbol_table.append(new_hash_table)
+      current_function_used = False
+
+    if self.name == 'Compound Statement':
+      # add a new scope if the 'compound statement' corresponding to the 'function definition' is used
+      if current_function_used == True:
+        scope_level = scope_level + 1
+        new_hash_table = {}
+        symbol_table.append(new_hash_table)
+      if current_function_used == False:
+        current_function_used = True
 
     if len(self.children) > 0 :
       for child in self.children : 
         child.traverse_tree()
 
-    if self.name == 'Function_definition':
+    if self.name == 'Compound Statement':
       del symbol_table[scope_level]
-      scope_level = scope_level - 1    
+      scope_level = scope_level - 1
 
     if self.name == 'Assignment' or self.name == "VarDecl and Initialise":
       type_lhs = fetch_type_from_symbol_table(self.children[0])
@@ -174,7 +186,7 @@ class ast_node(object):
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
       valid = ['double','float','int','unsigned int']
       if (type_children_0 in valid) and (type_children_1 in valid):
-        _type = 'BOOLEAN'
+        _type = 'BOOL'
         self.type = _type
       else:
         print "lineno",self.lineno,"-COMPILATION TERMINATED: error in Relation types"
@@ -194,7 +206,7 @@ class ast_node(object):
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
       valid = ['double','float','int','unsigned int']
       if (type_children_0 in valid) and (type_children_1 in valid):
-        _type = 'BOOLEAN'
+        _type = 'BOOL'
         self.type = _type
       else:
         print "lineno",self.lineno,"-COMPILATION TERMINATED: error in Equality expression types"
@@ -216,7 +228,7 @@ class ast_node(object):
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
       valid = ['double','float','int','unsigned int']
       if (type_children_0 in valid) and (type_children_1 in valid):
-        _type = 'BOOLEAN'
+        _type = 'BOOL'
         self.type = _type
       else:
         print "lineno",self.lineno,"-COMPILATION TERMINATED: error in logical operation types"
@@ -240,9 +252,16 @@ class ast_node(object):
             sys.exit()
 
     if self.name == 'RETURN_EXPRESSION':
+      print current_function
+      print symbol_table
       if fetch_type_from_symbol_table(self.children[0]) != symbol_table[0][current_function][0]:
         print "lineno",self.lineno,"-COMPILATION TERMINATED: Return type of function("+ str(symbol_table[0][current_function][0])+") doesn't match variable type("+str(fetch_type_from_symbol_table(self.children[0]))+")"
         sys.exit()
+
+    if self.name == 'Ternary Operation':
+      if fetch_type_from_symbol_table(self.children[0]) not in ['BOOL','int','unsigned int','float','double']:
+        print "COMPILAION TERMINATED: tyepcheck error in ternary operator"
+        sys.exit()       
 
     if self.name == "Pointer Dereference":
       self.type = fetch_type_from_symbol_table(self.children[0]).split(' ')[0]
@@ -386,11 +405,11 @@ def p_unary_expression_2(p):
   '''unary_expression   : unary_operator cast_expression
                         '''
   if p[1] == '*':
-    p[0] = ast_node("Pointer Dereference",value = p[2].value, type = p[2].type, children =[p[2]], lineno = p[1].lineno)
+    p[0] = ast_node("Pointer Dereference",value = p[2].value, type = p[2].type, children =[p[2]], lineno = p.lineno(1))
   elif p[1] == '&':
-    p[0] = ast_node("Address Of Operation",value = p[2].value, type = p[2].type, children =[p[2]], lineno = p[1].lineno)
+    p[0] = ast_node("Address Of Operation",value = p[2].value, type = p[2].type, children =[p[2]], lineno = p.lineno(1))
   else:
-    p[0] = ast_node("Unary Operator",value = p[2].value, type = p[2].type, children =[p[2]], lineno = p[1].lineno)    
+    p[0] = ast_node("Unary Operator",value = p[2].value, type = p[2].type, children =[p[2]], lineno = p.lineno(1))    
 
 def p_unary_expression_3(p):
   '''unary_expression   : SIZEOF '(' unary_expression ')'
