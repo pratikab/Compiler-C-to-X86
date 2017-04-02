@@ -1,8 +1,8 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
- 
+int printf(); 
+int scanf();
+int exit();
 int stack[5];
 void push();
 int pop();

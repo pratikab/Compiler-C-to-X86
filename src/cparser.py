@@ -88,7 +88,6 @@ class ast_node(object):
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-      print scope_level
       symbol_table[scope_level][self.value] = [self.type, 'Function']
       scope_level = scope_level + 1
       new_hash_table = {}
@@ -106,8 +105,9 @@ class ast_node(object):
         current_function_used = True
 
     if len(self.children) > 0 :
-      for child in self.children : 
-        child.traverse_tree()
+      for child in self.children :
+        if child is not None: 
+          child.traverse_tree()
 
     if self.name == 'Compound Statement':
       del symbol_table[scope_level]
@@ -196,7 +196,6 @@ class ast_node(object):
     if self.name == "UnaryOperator":
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       if type_children_0 not in {'int','float','double','unsigned int'}:
-        print type_children_0
         print "lineno",self.lineno,"-COMPILATION TERMINATED: invalid use of Unary Operator"
         sys.exit()
       else:
@@ -253,8 +252,6 @@ class ast_node(object):
             sys.exit()
 
     if self.name == 'RETURN_EXPRESSION':
-      print current_function
-      print symbol_table
       if fetch_type_from_symbol_table(self.children[0]) != symbol_table[0][current_function][0]:
         print "lineno",self.lineno,"-COMPILATION TERMINATED: Return type of function("+ str(symbol_table[0][current_function][0])+") doesn't match variable type("+str(fetch_type_from_symbol_table(self.children[0]))+")"
         sys.exit()
@@ -284,9 +281,10 @@ class ast_node(object):
       print (output)
     self.pydot_Node = add_node(output)
     if len(self.children) > 0 :
-      for child in self.children : 
-        child.print_tree(depth)
-        add_edge(self.pydot_Node,child.pydot_Node)    
+      for child in self.children :
+        if child is not None:  
+          child.print_tree(depth)
+          add_edge(self.pydot_Node,child.pydot_Node)    
 
   def set_type(self,t):
     self.type = t
@@ -930,13 +928,11 @@ def p_type_name(p):
 def p_abstract_declarator(p):
   '''abstract_declarator  : pointer
                           '''
-  print "HELLO" , p[1].type, p[1].value
   p[0] = p[1]
 
 def p_abstract_declarator_1(p):
   '''abstract_declarator  : direct_abstract_declarator
                           '''
-  print "WORLD"
   p[0] = p[1]
 
 def p_abstract_declarator_2(p):
@@ -1070,16 +1066,16 @@ def p_statement(p):
 def p_labeled_statement(p):
   '''labeled_statement  : identifier ':' statement
                         '''
-  ast_node('Label statement',value = '', type = '', children = [p[3]], lineno = p[1].lineno)
+  p[0] = ast_node('Label statement',value = '', type = '', children = [p[3]], lineno = p[1].lineno)
 def p_labeled_statement_1(p):
   '''labeled_statement  : CASE constant_expression ':' statement
                         '''
-  ast_node('Case statement',value = '', type = '', children = [p[2],p[4]], lineno = p.lineno(1))
+  p[0] = ast_node('Case statement',value = '', type = '', children = [p[2],p[4]], lineno = p.lineno(1))
 
 def p_labeled_statement_2(p):
   '''labeled_statement  : DEFAULT ':' statement
                         '''
-  ast_node('Default statement',value = '', type = '', children = [p[3]], lineno = p.lineno(1))
+  p[0] = ast_node('Default statement',value = '', type = '', children = [p[3]], lineno = p.lineno(1))
 
 def p_compound_statement(p):
   '''compound_statement   : '{' '}'
@@ -1227,11 +1223,13 @@ if len(sys.argv) >= 2:
   yacc.yacc( start='translation_unit')
   with open (fd, "r") as myfile:
     data=myfile.read()
-  print("File read complete")
+  print("File read complete........")
   yacc.parse(data)
-  start.print_tree(0)
+  print ("Parsed successfully.......")
   start.traverse_tree()
-  print ("Parsed successfully, writing graph to" + fd_2)
+  print ("Compiled successfully.......")
+  start.print_tree(0)
+  print ("Writing graph to" + fd_2)
   graph.write_png(fd_2)
   print ("Write successful")
 else :
