@@ -132,6 +132,7 @@ class ast_node(object):
       elif type_lhs != type_rhs:
         print "lineno",self.lineno,"-COMPILATION TERMINATED: type checking failed in assignment. "+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
         sys.exit(0)
+      self.type = fetch_type_from_symbol_table(self.children[0])
 
     if self.name == 'Multiplication':
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
@@ -284,7 +285,9 @@ class ast_node(object):
       for child in self.children :
         if child is not None:  
           child.print_tree(depth)
-          add_edge(self.pydot_Node,child.pydot_Node)    
+          add_edge(self.pydot_Node,child.pydot_Node)
+        else : 
+          print "[DEBUG] CHILD NONE WARNING"    
 
   def set_type(self,t):
     self.type = t
