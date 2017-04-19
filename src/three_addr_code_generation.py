@@ -3,6 +3,7 @@ import cparser
 
 temp, symbol_table = cparser.main()
 
+print symbol_table	
 
 class icg(object):
   def __init__(self, code='',place=0):

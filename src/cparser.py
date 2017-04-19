@@ -80,7 +80,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'']
+        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'',self.lineno]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' declared void'
           sys.exit()
@@ -90,7 +90,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable in Struct ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value] = [self.type,'']
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value + ' declared void'
           sys.exit()
@@ -100,7 +100,7 @@ class ast_node(object):
       if self.value in symbol_table[0].keys():
         print self.lineno, 'COMPILATION ERROR : struct ' + self.value + ' already declared'
         sys.exit()
-      symbol_table[0][self.value] = ['struct', '']
+      symbol_table[0][self.value] = ['struct', '',self.lineno]
       current_struct = self.value
 
     if self.name == 'paramater':
@@ -109,11 +109,11 @@ class ast_node(object):
         sys.exit()
       else:
         # symbol_table[scope_level - 1][self.value][0] = p[2].type    Correct version todo : try to use p[2].type
-        symbol_table[scope_level][self.value] = [self.type,'']
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno]
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-      symbol_table[scope_level][self.value] = [self.type, 'Function']
+      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno]
       scope_level = scope_level + 1
       new_hash_table = {}
       current_function = self.value
