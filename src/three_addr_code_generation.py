@@ -2,12 +2,18 @@ import sys
 import cparser
 
 temp, symbol_table = cparser.main()
+count_label = 0
 
 print symbol_table	
 
-class icg(object):
-  def __init__(self, code='',place=0):
+
+class label(object):
+  def __init__(self, code='',id = 0):
   	self.code = code
-  	self.place = 0
-  def gen():
-  	pass
+  	self.id = count_label;
+  	count_label = count_label + 1;
+  def print_label(self):
+  	print "L",self.id,":"
+  	print "\t",self.code
+
+
