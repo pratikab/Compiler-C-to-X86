@@ -15,6 +15,7 @@ graph = pydot.Dot(graph_type='graph')
 # Symbol Table is a list of hash tables
 # Each Hash table is of the form, symbol_table['A'] = [type, 'Function or not']
 symbol_table = []
+full_symbol_table = []
 symbol_table.append({})
 scope_level = 0
 current_function = ''
@@ -34,7 +35,8 @@ def add_node(p):
   return node
 
 class ast_node(object):
-  def __init__(self, name='', value='', type='', children='', modifiers='', dims=0, arraylen=[], sym_entry='', lineno=0,tag = '',pydot_Node = None, is_var = False):
+  def __init__(self, name='', value='', type='', children='', modifiers='', dims=0, arraylen=[], sym_entry='',
+   lineno=0,tag = '',pydot_Node = None, is_var = False):
     self.name = name
     self.value = value
     self.type = type
@@ -140,6 +142,10 @@ class ast_node(object):
 
     if self.name == 'Compound Statement':
       print symbol_table
+      if len(full_symbol_table) > scope_level + 1:
+        full_symbol_table[scope_level].append(symbol_table[scope_level])
+      else:
+        full_symbol_table.append([symbol_table[scope_level]])
       del symbol_table[scope_level]
       scope_level = scope_level - 1
 
@@ -147,6 +153,10 @@ class ast_node(object):
       print symbol_table
       symbol_table[0][current_struct].append(symbol_table[scope_level])
       current_struct = ''
+      if len(full_symbol_table) > scope_level + 1:
+        full_symbol_table[scope_level].append(symbol_table[scope_level])
+      else:
+        full_symbol_table.append([symbol_table[scope_level]])
       del symbol_table[scope_level]
       scope_level = scope_level - 1
 
@@ -157,19 +167,22 @@ class ast_node(object):
       if type_rhs in valid and type_lhs in valid:
         # todo: properly check these comments
         # if valid.index(type_lhs) > valid.index(type_rhs):
-        #   print 'lineno',self.lineno,'-COMPILATION TERMINATED: type checking failed in assignment. '+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
+        #   print 'lineno',self.lineno,'-COMPILATION TERMINATED: type checking failed in assignment. '+
+        #   self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
         #   sys.exit(0)
         pass
       elif type_lhs[-1:] == '*':
         if type_rhs == type_lhs:
           pass
         elif type_rhs not in ['int','unsigned int']:
-          print 'lineno',self.lineno,'-COMPILATION TERMINATED: type checking failed in assignment. '+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
+          print 'lineno',self.lineno,'-COMPILATION TERMINATED: type checking failed in assignment. '+ \
+            self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
           sys.exit(0)
         else:
           print 'lineno',self.lineno,'-WARNING: initialization makes pointer from integer without a cast'
       elif type_lhs != type_rhs:
-        print 'lineno',self.lineno,'-COMPILATION TERMINATED: type checking failed in assignment. '+ self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
+        print 'lineno',self.lineno,'-COMPILATION TERMINATED: type checking failed in assignment. '+ \
+         self.children[0].value +': ' + type_lhs + ', ' + self.children[1].value + ': ' + type_rhs
         sys.exit(0)
       self.type = fetch_type_from_symbol_table(self.children[0])
 
@@ -293,7 +306,8 @@ class ast_node(object):
 
     if self.name == 'RETURN_EXPRESSION':
       if fetch_type_from_symbol_table(self.children[0]) != symbol_table[0][current_function][0]:
-        print 'lineno',self.lineno,'-COMPILATION TERMINATED: Return type of function('+ str(symbol_table[0][current_function][0])+') does not match variable type('+str(fetch_type_from_symbol_table(self.children[0]))+')'
+        print 'lineno',self.lineno,'-COMPILATION TERMINATED: Return type of function('+ \
+         str(symbol_table[0][current_function][0])+') does not match variable type('+str(fetch_type_from_symbol_table(self.children[0]))+')'
         sys.exit()
 
     if self.name == 'Ternary Operation':
@@ -415,7 +429,7 @@ def p_postfix_expression_1(p):
 def p_postfix_expression_2(p):
   '''postfix_expression   : postfix_expression '(' ')'
                           '''                          
-  p[0] = ast_node('FuncCall',value = p[1].value,type = p[1].type,children =[p[1]], lineno = p[1].lineno)                          
+  p[0] = ast_node('FuncCall',value = p[1].value,type = p[1].type,children =[p[1]], lineno = p[1].lineno)
 def p_postfix_expression_3(p):
   '''postfix_expression   : postfix_expression '(' argument_expression_list ')'
                           '''
@@ -424,7 +438,7 @@ def p_postfix_expression_4(p):
   '''postfix_expression   : postfix_expression '.' identifier
                           | postfix_expression PTR_OP identifier
                           '''
-  p[0] = ast_node('StructReference',value = p[3].value,type = p[3].type,children =[p[1],p[3]], lineno = p[1].lineno)                          
+  p[0] = ast_node('StructReference',value = p[3].value,type = p[3].type,children =[p[1],p[3]], lineno = p[1].lineno)
 def p_postfix_expression_5(p):
   '''postfix_expression   : postfix_expression INC_OP
                           | postfix_expression DEC_OP
@@ -692,7 +706,8 @@ def p_init_declarator(p):
   if len(p) == 2:
     p[0] = ast_node('VarDecl', value = p[1].value,type =p[1].type,children = [p[1]], lineno = p[1].lineno)
   else:
-    p[0] = ast_node('VarDecl and Initialise',value = (p[1].value + '=' +p[3].value),type =p[1].type,children = [p[1],p[3]], lineno = p[1].lineno)  
+    p[0] = ast_node('VarDecl and Initialise',value = (p[1].value + '=' +p[3].value),
+      type =p[1].type,children = [p[1],p[3]], lineno = p[1].lineno)
 def p_storage_class_specifier(p):
   '''storage_class_specifier  : TYPEDEF
                               | EXTERN
@@ -854,7 +869,7 @@ def p_declarator(p):
   if len(p) == 2:
     p[0] = p[1]
   else: 
-    p[0] = ast_node('PointerDeclaration',value = p[2].value,type =p[1].type+p[2].type,children = [], lineno = p[1].lineno)                
+    p[0] = ast_node('PointerDeclaration',value = p[2].value,type =p[1].type+p[2].type,children = [], lineno = p[1].lineno)
 
 def p_direct_declarator(p):
   '''direct_declarator  : identifier
@@ -1206,7 +1221,7 @@ def p_iteration_statement_3(p):
 def p_iteration_statement_4(p):
   '''iteration_statement  : FOR '(' declaration expression_statement ')' statement
                           '''
-  p[0] = ast_node('For Statement', value = '', type = '', children = [p[3],p[4],p[6]], lineno = p.lineno(1))                          
+  p[0] = ast_node('For Statement', value = '', type = '', children = [p[3],p[4],p[6]], lineno = p.lineno(1))
 def p_iteration_statement_5(p):
   '''iteration_statement  : FOR '(' declaration expression_statement expression ')' statement
                           '''
@@ -1277,25 +1292,31 @@ def p_error(p):
     else:
         print('Syntax error at EOF')
 
-if len(sys.argv) >= 2:
-  fd = sys.argv[1]
-  if len(sys.argv) == 3 :
-    fd_2 = '../test/' + sys.argv[2]
-  else : 
-    fd_2 = '../test/graph.png'
-  yacc.yacc( start='translation_unit')
-  with open (fd, 'r') as myfile:
-    data=myfile.read()
-  print('File read complete........')
-  yacc.parse(data)
-  print ('Parsed successfully.......')
-  start.traverse_tree()
-  print ('Compiled successfully.......')
-  start.print_tree(0)
-  print ('Writing graph to' + fd_2)
-  graph.write_png(fd_2)
-  print ('Write successful')
-else :
-  yacc.yacc( start='translation_unit')
-  yacc.parse('');
-  print('Please provide file to be parsed')
+def main():
+  if len(sys.argv) >= 2:
+    fd = sys.argv[1]
+    if len(sys.argv) == 3 :
+      fd_2 = '../test/' + sys.argv[2]
+    else : 
+      fd_2 = '../test/graph.png'
+    yacc.yacc( start='translation_unit')
+    with open (fd, 'r') as myfile:
+      data=myfile.read()
+    print('File read complete........')
+    yacc.parse(data)
+    print ('Parsed successfully.......')
+    start.traverse_tree()
+    print ('Compiled successfully.......')
+    start.print_tree(0)
+    print ('Writing graph to' + fd_2)
+    graph.write_png(fd_2)
+    print ('Write successful')
+    full_symbol_table[0] = full_symbol_table[0] + symbol_table
+    return start, full_symbol_table
+  else :
+    yacc.yacc( start='translation_unit')
+    yacc.parse('');
+    print('Please provide file to be parsed')
+
+if __name__ == '__main__':
+  main()
