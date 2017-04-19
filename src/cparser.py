@@ -141,7 +141,6 @@ class ast_node(object):
           child.traverse_tree()
 
     if self.name == 'Compound Statement':
-      print symbol_table
       if len(full_symbol_table) > scope_level + 1:
         full_symbol_table[scope_level].append(symbol_table[scope_level])
       else:
@@ -150,7 +149,6 @@ class ast_node(object):
       scope_level = scope_level - 1
 
     if self.name == 'struct_declaration_list':
-      print symbol_table
       symbol_table[0][current_struct].append(symbol_table[scope_level])
       current_struct = ''
       if len(full_symbol_table) > scope_level + 1:
@@ -276,7 +274,7 @@ class ast_node(object):
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: error in logical operation types'
         sys.exit()
 
-    if self.name == ('AND' or 'Logical AND' or'Logical OR'):
+    if self.name == ('Logical AND' or'Logical OR'):
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
       valid = ['double','float','int','unsigned int']
@@ -320,7 +318,6 @@ class ast_node(object):
       if fetch_type_from_symbol_table(self.children[0]).startswith('struct'):
         pass
       else:
-        print symbol_table
         print fetch_type_from_symbol_table(self.children[0])
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: '+ self.children[0].value +' is no struct'
         sys.exit()
@@ -361,8 +358,9 @@ class ast_node(object):
     self.type = t
     if len(self.children) > 0 :
       for child in self.children : 
-        if child.name != 'ConstantLiteral':
-          child.set_type(t)
+        if hasattr(child,'name'):
+          if child.name != 'ConstantLiteral':
+              child.set_type(t)
 
 # Works for both cases : when the child is variable and when it's a constant
 def fetch_type_from_symbol_table(child):
@@ -513,7 +511,8 @@ def p_multiplicative_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Multiplication', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Multiplication', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
 
 def p_multiplicative_expression_1(p):
   '''multiplicative_expression  : multiplicative_expression '%' cast_expression
@@ -521,7 +520,8 @@ def p_multiplicative_expression_1(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Modulus Operation', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Modulus Operation', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
 
 def p_additive_expression(p):
   '''additive_expression  : multiplicative_expression
@@ -531,7 +531,8 @@ def p_additive_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Addition', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Addition', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
   
 def p_shift_expression(p):
   '''shift_expression   : additive_expression
@@ -541,7 +542,8 @@ def p_shift_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Shift', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Shift', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
   
 def p_relational_expression(p):
   '''relational_expression  : shift_expression
@@ -553,7 +555,8 @@ def p_relational_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Relation', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Relation', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
 
 def p_equality_expression(p):
   '''equality_expression  : relational_expression
@@ -563,7 +566,8 @@ def p_equality_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('EqualityExpression', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('EqualityExpression', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
 
 def p_and_expression(p):
   '''and_expression   : equality_expression
@@ -572,7 +576,8 @@ def p_and_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('AND', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('AND', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
 
 def p_exclusive_or_expression(p):
   '''exclusive_or_expression  : and_expression
@@ -581,7 +586,8 @@ def p_exclusive_or_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Exclusive OR', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Exclusive OR', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
 
 def p_inclusive_or_expression(p):
   '''inclusive_or_expression  : exclusive_or_expression
@@ -590,7 +596,8 @@ def p_inclusive_or_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Inclusive OR', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Inclusive OR', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
   
 
 def p_logical_and_expression(p):
@@ -600,7 +607,8 @@ def p_logical_and_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Logical AND', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Logical AND', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
   
 def p_logical_or_expression(p):
   '''logical_or_expression  : logical_and_expression
@@ -609,7 +617,8 @@ def p_logical_or_expression(p):
   if len(p) == 2:
     p[0] = p[1]
   else:
-    p[0] = ast_node('Logical OR', value = '', type = '', children =[p[1],p[3]], lineno = p[1].lineno)
+    temp = ast_node(value=p[2], lineno=p[1].lineno)
+    p[0] = ast_node('Logical OR', value = '', type = '', children =[p[1],p[3],temp], lineno = p[1].lineno)
 
 def p_conditional_expression(p):
   '''conditional_expression   : logical_or_expression
