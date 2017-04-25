@@ -20,10 +20,11 @@ class label(object):
 class newtemp(object):
   def __init__(self,_id = 0):
     global count_temp
+    self.count = count_temp
     self._id = count_temp;
     count_temp = count_temp + 1;
   def __repr__(self):
-    return  'T' + str(count_temp)
+    return  'T' + str(self.count)
 
 class Assignment():
   """docstring for Assignment"""
@@ -49,31 +50,40 @@ class BinOp():
   def __repr__(self):
     return self.destination + ' = ' + self.source_1 + self.operand + self.source_2
 
+class  LogicalOP(object):
+  """docstring for  LogicalOP"""
+  def __init__(self,source_1='',operand='',source_2=''):
+    self.source_1 = source_1
+    self.source_2 = source_2
+    self.operand = operand
+  def __repr__(self):
+    return 'if ' + self.source_1 + ' ' + self.operand + ' ' + self.source_2 + ' jmp'
+    
+
 def Jump(arg):
   code = code + '\t JMP ' + arg + '\n'
 
 
 def traverse_tree(ast_node):
   global code
+  arg = ''
   # if ast_node.name == 'VarAccess':
 
   if ast_node.name == 'IF Statement':
     E_true = label(name = ast_node.value)
-    E_false = label(name = ast_node.value)
-    if ast_node.children[0] is not None:
-      traverse_tree(ast_node.children[0])
-      code = code + str(E_true) + '\n'
-    if ast_node.children[1] is not None:
-      traverse_tree(ast_node.children[1])
-      code = code + str(E_false) + '\n'
+    traverse_tree(ast_node.children[0])
+    code = code + str(E_true) + '\n'
+    traverse_tree(ast_node.children[1])
   # elif ast_node.name == 'IF-Else Statement':
   #   code = 'if ' + ast_node.children[0] + ' is False goto' 
 
   elif ast_node.name == 'VarDecl and Initialise':
     if ast_node.children[1] is not None: 
-      traverse_tree(ast_node.children[1])
-    arg1 = Assignment(ast_node.children[0].value,ast_node.children[1].value)
-    code = code +'\t' + str(arg1) +'\n'
+      arg1 = traverse_tree(ast_node.children[1])
+    if arg1 == '':
+      arg1 = ast_node.children[1].value
+    arg3 = Assignment(ast_node.children[0].value,arg1)
+    code = code +'\t' + str(arg3) +'\n'
   # elif ast_node.name == 'struct_variable_declaration':
 
   # elif ast_node.name == 'Struct Declaration':
@@ -103,50 +113,56 @@ def traverse_tree(ast_node):
     code = code +'\t' + str(arg1) +'\n'
 
   elif ast_node.name == 'Multiplication':
-    if ast_node.children[1] is not None: 
-      traverse_tree(ast_node.children[1])
-    arg = newtemp()
-    arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
-    code = code +'\t' + str(arg1) +'\n'
+    arg1 = traverse_tree(ast_node.children[0])
+    if arg1 == '':
+      arg1 = ast_node.children[0].value
+    arg2 = traverse_tree(ast_node.children[1])
+    if arg2 == '':
+      arg2 = ast_node.children[1].value
+    arg = str(newtemp())
+    arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
+    code = code +'\t' + str(arg3) +'\n'
 
   # elif ast_node.name == 'Modulus Operation':
 
   elif ast_node.name == 'Addition':
-    if ast_node.children[1] is not None: 
-      traverse_tree(ast_node.children[1])
-    arg = newtemp()
-    arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
-    code = code +'\t' + str(arg1) +'\n'
+    arg1 = traverse_tree(ast_node.children[0])
+    if arg1 == '':
+      arg1 = ast_node.children[0].value
+    arg2 = traverse_tree(ast_node.children[1])
+    if arg2 == '':
+      arg2 = ast_node.children[1].value
+    arg = str(newtemp())
+    arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
+    code = code +'\t' + str(arg3) +'\n'
 
-  elif ast_node.name == 'Shift':
-    if ast_node.children[1] is not None: 
-      traverse_tree(ast_node.children[1])
-    arg = newtemp()
-    arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
-    code = code +'\t' + str(arg1) +'\n'
+  # elif ast_node.name == 'Shift':
+  #   if ast_node.children[1] is not None: 
+  #     traverse_tree(ast_node.children[1])
+  #   arg = newtemp()
+  #   arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
+  #   code = code +'\t' + str(arg1) +'\n'
 
-  elif ast_node.name == 'Relation':
-    if ast_node.children[1] is not None: 
-      traverse_tree(ast_node.children[1])
-    arg = newtemp()
-    arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
-    code = code +'\t' + str(arg1) +'\n'
+  # elif ast_node.name == 'Relation':
+  #   if ast_node.children[1] is not None: 
+  #     traverse_tree(ast_node.children[1])
+  #   arg = newtemp()
+  #   arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
+  #   code = code +'\t' + str(arg1) +'\n'
 
   # elif ast_node.name == 'UnaryOperator':
 
   elif ast_node.name == 'EqualityExpression':
-    if ast_node.children[1] is not None:
-      traverse_tree(ast_node.children[1])
-    arg = newtemp()
-    arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
+    traverse_tree(ast_node.children[1])
+    arg1 = LogicalOP(ast_node.children[0].value, ast_node.children[2].value, ast_node.children[1].value)
     code = code +'\t' + str(arg1) +'\n'
 
-  elif ast_node.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
-    if ast_node.children[1] is not None: 
-      traverse_tree(ast_node.children[1])
-    arg = newtemp()
-    arg1 = BinOp(arg,ast_node.children[0].value,'*//',ast_node.children[1].value)
-    code = code +'\t' + str(arg1) +'\n'
+  # elif ast_node.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
+  #   if ast_node.children[1] is not None: 
+  #     traverse_tree(ast_node.children[1])
+  #   arg = newtemp()
+  #   arg1 = BinOp(arg,ast_node.children[0].value,'*//',ast_node.children[1].value)
+  #   code = code +'\t' + str(arg1) +'\n'
 
   # elif ast_node.name == ('Logical AND' or'Logical OR'):
 
@@ -170,6 +186,7 @@ def traverse_tree(ast_node):
       for child in ast_node.children :
         if child is not None:
           traverse_tree(child)
+  return str(arg)
 
 traverse_tree(root)
 print code
