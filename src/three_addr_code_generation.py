@@ -97,7 +97,13 @@ def traverse_tree(ast_node):
         if child is not None: 
          traverse_tree(child)
 
-  # elif ast_node.name == 'Compound Statement':
+  elif ast_node.name == 'Compound Statement':
+    if len(ast_node.children) > 0 :
+      for child in ast_node.children :
+        traverse_tree(child)
+    E_true = label(name = ast_node.value)
+    code = code + str(E_true) + '\n'
+
 
   # elif ast_node.name == 'struct_declaration_list':
 
