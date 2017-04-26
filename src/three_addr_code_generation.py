@@ -70,10 +70,14 @@ def traverse_tree(ast_node):
   # if ast_node.name == 'VarAccess':
 
   if ast_node.name == 'IF Statement':
+    E_start = label(name = ast_node.value)
+    code = code + str(E_start) + '\n'
     E_true = label(name = ast_node.value)
     traverse_tree(ast_node.children[0])
     code = code + str(E_true) + '\n'
     traverse_tree(ast_node.children[1])
+    E_next = label(name = ast_node.value)
+    code = code + str(E_next) + '\n'
   # elif ast_node.name == 'IF-Else Statement':
   #   code = 'if ' + ast_node.children[0] + ' is False goto' 
 
@@ -101,8 +105,8 @@ def traverse_tree(ast_node):
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
         traverse_tree(child)
-    E_true = label(name = ast_node.value)
-    code = code + str(E_true) + '\n'
+    # E_true = label(name = ast_node.value)
+    # code = code + str(E_true) + '\n'
 
 
   # elif ast_node.name == 'struct_declaration_list':
@@ -159,9 +163,11 @@ def traverse_tree(ast_node):
   # elif ast_node.name == 'UnaryOperator':
 
   elif ast_node.name == 'EqualityExpression':
-    traverse_tree(ast_node.children[1])
-    arg1 = LogicalOP(ast_node.children[0].value, ast_node.children[2].value, ast_node.children[1].value)
-    code = code +'\t' + str(arg1) +'\n'
+    arg2 = traverse_tree(ast_node.children[1])
+    if arg2 == '':
+      arg2 = ast_node.children[1].value
+    arg3 = LogicalOP(ast_node.children[0].value, ast_node.children[2].value, arg2)
+    code = code +'\t' + str(arg3) +'\n'
 
   # elif ast_node.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
   #   if ast_node.children[1] is not None: 
