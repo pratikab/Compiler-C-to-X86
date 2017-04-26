@@ -84,7 +84,8 @@ def traverse_tree(ast_node):
     E_true = label(name = ast_node.value)
     E_next = label(name = ast_node.value)
     code = code + str(E_start) + '\n'
-    traverse_tree(ast_node.children[0])
+    arg1 = traverse_tree(ast_node.children[0])
+    code = code + '\t if ' + str(arg1) + ' JMP' + '\n'
     code = code + str(E_true) + '\n'
     traverse_tree(ast_node.children[1])
     code = code + str(E_next) + '\n'
@@ -94,12 +95,17 @@ def traverse_tree(ast_node):
     E_true = label(name = ast_node.value)
     E_false = label(name = ast_node.value)
     E_next = label(name = ast_node.value)
+
     code = code + str(E_start) + '\n'
-    traverse_tree(ast_node.children[0])
+    arg1 = traverse_tree(ast_node.children[0])
+    code = code + '\tif ' + str(arg1) + ' JMP' + '\n'
+
     code = code + str(E_true) + '\n'
     traverse_tree(ast_node.children[1])
+
     code = code + str(E_false) + '\n'
     traverse_tree(ast_node.children[2])
+
     code = code + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl and Initialise':
@@ -195,7 +201,8 @@ def traverse_tree(ast_node):
     arg2 = traverse_tree(ast_node.children[1])
     if arg2 == '':
       arg2 = ast_node.children[1].value
-    arg3 = LogicalOP(ast_node.children[0].value, ast_node.children[2].value, arg2)
+    arg = newtemp()
+    arg3 = BinOp(str(arg), ast_node.children[0].value, ast_node.children[2].value, arg2)
     code = code +'\t' + str(arg3) +'\n'
 
   # elif ast_node.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
