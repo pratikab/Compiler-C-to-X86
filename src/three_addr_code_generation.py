@@ -89,7 +89,6 @@ def traverse_tree(ast_node):
     code = code + str(E_true) + '\n'
     traverse_tree(ast_node.children[1])
     code = code + str(E_next) + '\n'
-
   elif ast_node.name == 'IF-Else Statement':
     E_start = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
@@ -212,12 +211,16 @@ def traverse_tree(ast_node):
   #   arg1 = BinOp(arg,ast_node.children[0].value,'*//',ast_node.children[1].value)
   #   code = code +'\t' + str(arg1) +'\n'
 
-  # elif ast_node.name == ('Logical AND' or'Logical OR'):
-  #   if ast_node.children[1] is not None: 
-  #     traverse_tree(ast_node.children[1])
-  #   arg = newtemp()
-  #   arg1 = BinOp(arg,ast_node.children[0].value,'*//',ast_node.children[1].value)
-  #   code = code +'\t' + str(arg1) +'\n'
+  elif ast_node.name in {'Logical AND','Logical OR'}:
+    arg1 = traverse_tree(ast_node.children[0])
+    if arg1 == '':
+      arg1 = ast_node.children[0].value
+    arg2 = traverse_tree(ast_node.children[1])
+    if arg2 == '':
+      arg2 = ast_node.children[1].value
+    arg = str(newtemp())
+    arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
+    code = code +'\t' + str(arg3) +'\n'
 
   # elif ast_node.name == 'ArrayAccess':
 
