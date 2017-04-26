@@ -71,15 +71,26 @@ def traverse_tree(ast_node):
 
   if ast_node.name == 'IF Statement':
     E_start = label(name = ast_node.value)
-    code = code + str(E_start) + '\n'
     E_true = label(name = ast_node.value)
+    E_next = label(name = ast_node.value)
+    code = code + str(E_start) + '\n'
     traverse_tree(ast_node.children[0])
     code = code + str(E_true) + '\n'
     traverse_tree(ast_node.children[1])
-    E_next = label(name = ast_node.value)
     code = code + str(E_next) + '\n'
-  # elif ast_node.name == 'IF-Else Statement':
-  #   code = 'if ' + ast_node.children[0] + ' is False goto' 
+
+  elif ast_node.name == 'IF-Else Statement':
+    E_start = label(name = ast_node.value)
+    E_true = label(name = ast_node.value)
+    E_false = label(name = ast_node.value)
+    E_next = label(name = ast_node.value)
+    code = code + str(E_start) + '\n'
+    traverse_tree(ast_node.children[0])
+    code = code + str(E_true) + '\n'
+    traverse_tree(ast_node.children[1])
+    code = code + str(E_false) + '\n'
+    traverse_tree(ast_node.children[2])
+    code = code + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl and Initialise':
     if ast_node.children[1] is not None: 
