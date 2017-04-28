@@ -13,11 +13,15 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Struct Address Dereference
 
 # Symbol Table is a list of hash tables
-# Each Hash table is of the form, symbol_table['A'] = [type, 'Function or not']
+# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not']
+# It also has the attributes symbol_stable[scope_level]['parent_scope_name'] = 'name of parent scope', 
+# symbol_stable[scope_level]['scope_name'] = 'current score name'
 symbol_table = []
 full_symbol_table = []
-symbol_table.append({})
+symbol_table.append({'parent_scope_name':'','scope_name':'s0'})
+current_scope_name = 's0'
 scope_level = 0
+scopeNo = 0
 current_function = ''
 current_struct = ''
 # Checks if the 'Compound Statement' is associated with a function or not
@@ -25,6 +29,14 @@ current_function_used = False
 
 def add_edge(node_parent,node_child):
   graph.add_edge(pydot.Edge(node_parent, node_child))
+
+
+def newScopeName():
+  global scopeNo
+  scopeNo += 1
+  newScope = "s"+str(scopeNo) 
+  return newScope
+
 
 k = 0
 def add_node(p):
@@ -36,7 +48,7 @@ def add_node(p):
 
 class ast_node(object):
   def __init__(self, name='', value='', type='', children='', modifiers='', dims=0, arraylen=[], sym_entry='',
-   lineno=0,tag = '',pydot_Node = None, is_var = False):
+   lineno=0,tag = '',pydot_Node = None, is_var = False, scope_name = ''):
     self.name = name
     self.value = value
     self.type = type
@@ -45,6 +57,7 @@ class ast_node(object):
     self.sym_entry = sym_entry
     self.pydot_Node = None
     self.is_var = is_var
+    self.scope_name = scope_name
     if modifiers:
         self.modifiers = modifiers
     else:
@@ -63,9 +76,10 @@ class ast_node(object):
     global current_function
     global current_function_used
     global current_struct
-
+    global current_scope_name
     if self.name == 'VarAccess':
       found = False
+      self.scope_name = current_scope_name
       for i in range(0,scope_level+1):
         if self.value in symbol_table[i].keys():
           found = True
@@ -76,6 +90,7 @@ class ast_node(object):
         sys.exit()
 
     if self.name.startswith('VarDecl'):
+      self.scope_name = current_scope_name
       if self.value.split('=')[0] in symbol_table[scope_level].keys():
         print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
@@ -116,6 +131,9 @@ class ast_node(object):
       symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno]
       scope_level = scope_level + 1
       new_hash_table = {}
+      new_hash_table = {'parent_scope_name':current_scope_name}
+      current_scope_name = newScopeName()
+      new_hash_table['scope_name'] = current_scope_name
       current_function = self.value
       symbol_table.append(new_hash_table)
       current_function_used = False
@@ -124,7 +142,9 @@ class ast_node(object):
       # add a new scope if the 'compound statement' corresponding to the 'function definition' is used
       if current_function_used == True:
         scope_level = scope_level + 1
-        new_hash_table = {}
+        new_hash_table = {'parent_scope_name':current_scope_name}
+        current_scope_name = newScopeName()
+        new_hash_table['scope_name'] = current_scope_name
         symbol_table.append(new_hash_table)
       if current_function_used == False:
         current_function_used = True
@@ -133,6 +153,9 @@ class ast_node(object):
       # add a new scope if the 'compound statement' corresponding to the 'function definition' is used
       scope_level = scope_level + 1
       new_hash_table = {}
+      new_hash_table = {'parent_scope_name':current_scope_name}
+      current_scope_name = newScopeName()
+      new_hash_table['scope_name'] = current_scope_name
       symbol_table.append(new_hash_table)
 
     if len(self.children) > 0 :
@@ -145,6 +168,7 @@ class ast_node(object):
         full_symbol_table[scope_level].append(symbol_table[scope_level])
       else:
         full_symbol_table.append([symbol_table[scope_level]])
+      current_scope_name = symbol_table[scope_level]['parent_scope_name']
       del symbol_table[scope_level]
       scope_level = scope_level - 1
 
@@ -343,7 +367,7 @@ class ast_node(object):
       if len(self.arraylen) != 0:
         output = self.name + ' ' + self.type+' '+str(self.value)+' '+str(self.arraylen)
       else:
-        output = self.name + ' ' + self.type+' '+str(self.value)
+        output = self.name + ' ' + self.type+' '+str(self.value)+' '+self.scope_name
       print (output)
     self.pydot_Node = add_node(output)
     if len(self.children) > 0 :
@@ -1288,11 +1312,11 @@ def main():
     print ('Parsed successfully.......')
     start.traverse_tree()
     print ('Compiled successfully.......')
-    # start.print_tree(0)
+    start.print_tree(0)
     print ('Writing graph to' + fd_2)
     graph.write_png(fd_2)
     print ('Write successful')
-    full_symbol_table[0] = full_symbol_table[0] + symbol_table
+    full_symbol_table[0] = symbol_table + full_symbol_table[0]
     return start, full_symbol_table
   else :
     yacc.yacc( start='translation_unit')
