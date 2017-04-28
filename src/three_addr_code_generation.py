@@ -135,9 +135,27 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(breaklist)
   elif ast_node.name == 'CONTINUE':
     Jump(nextlist)
-  # elif ast_node.name == 'ForStatement3Exp':
 
+  elif ast_node.name == 'ForStatement3Exp':
+    traverse_tree(ast_node.children[0], nextlist ,breaklist)
 
+    E_next = label(name = ast_node.value)
+    E_begin = label(name = ast_node.value)
+    E_end = label(name = ast_node.value)
+
+    code = code + str(E_begin) + '\n'
+    arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    Compare(arg1,0)
+    Jump(E_next)
+
+    traverse_tree(ast_node.children[3], E_end ,E_next)
+
+    code = code + str(E_end) + '\n'
+
+    traverse_tree(ast_node.children[2], nextlist ,breaklist)
+    Jump(E_begin)
+
+    code = code + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl and Initialise':
     if ast_node.children[1] is not None: 
@@ -217,12 +235,13 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg3 = ShiftOP(str(arg) ,str(arg1) , ast_node.children[2].value, str(arg2))
     code = code +'\t' + str(arg3) +'\n'
 
-  # elif ast_node.name == 'Relation':
-  #   if ast_node.children[1] is not None: 
-  #     traverse_tree(ast_node.children[1])
-  #   arg = newtemp()
-  #   arg1 = BinOp(str(arg),ast_node.children[0].value,ast_node.children[2].value,ast_node.children[1].value)
-  #   code = code +'\t' + str(arg1) +'\n'
+  elif ast_node.name == 'Relation':
+    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    if arg2 == '':
+      arg2 = ast_node.children[1].value
+    arg = newtemp()
+    arg3 = BinOp(str(arg), ast_node.children[0].value, ast_node.children[2].value, arg2)
+    code = code +'\t' + str(arg3) +'\n'
 
   # elif ast_node.name == 'UnaryOperator':
 

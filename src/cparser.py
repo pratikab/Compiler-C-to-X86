@@ -1226,7 +1226,7 @@ def p_iteration_statement_2(p):
 def p_iteration_statement_3(p):
   '''iteration_statement  : FOR '(' expression_statement expression_statement expression ')' statement
                           '''
-  p[0] = ast_node('For Statement', value = '', type = '', children = [p[3],p[4],p[5],p[7]], lineno = p.lineno(1))
+  p[0] = ast_node('ForStatement3Exp', value = '', type = '', children = [p[3],p[4],p[5],p[7]], lineno = p.lineno(1))
 def p_iteration_statement_4(p):
   '''iteration_statement  : FOR '(' declaration expression_statement ')' statement
                           '''
