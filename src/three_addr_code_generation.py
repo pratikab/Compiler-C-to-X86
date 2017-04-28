@@ -71,45 +71,77 @@ class ShiftOP(object):
     
 
 def Jump(arg):
-  code = code + '\t JMP ' + arg + '\n'
+  global code
+  code = code + '\tJMP ' + str(arg) + '\n'
+def Compare(arg1, arg2):
+  global code
+  code = code + '\tCMP ' + str(arg1) +', ' + str(arg2) + '\n'
 
 
-def traverse_tree(ast_node):
+def traverse_tree(ast_node, nextlist ,breaklist):
   global code
   arg = ''
   # if ast_node.name == 'VarAccess':
 
   if ast_node.name == 'IF Statement':
-    E_start = label(name = ast_node.value)
-    E_true = label(name = ast_node.value)
     E_next = label(name = ast_node.value)
-    code = code + str(E_start) + '\n'
-    arg1 = traverse_tree(ast_node.children[0])
-    code = code + '\t if ' + str(arg1) + ' JMP' + '\n'
+    E_true = label(name = ast_node.value)
+    
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    Compare(arg1,0)
+    Jump(E_next)
+    
     code = code + str(E_true) + '\n'
-    traverse_tree(ast_node.children[1])
+    traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    Jump(E_next)
+    
     code = code + str(E_next) + '\n'
+
+
   elif ast_node.name == 'IF-Else Statement':
-    E_start = label(name = ast_node.value)
+    E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
     E_false = label(name = ast_node.value)
-    E_next = label(name = ast_node.value)
 
-    code = code + str(E_start) + '\n'
-    arg1 = traverse_tree(ast_node.children[0])
-    code = code + '\tif ' + str(arg1) + ' JMP' + '\n'
-
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    Compare(arg1,0)
+    Jump(E_false)
+    
     code = code + str(E_true) + '\n'
-    traverse_tree(ast_node.children[1])
+    traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    Jump(E_next)
 
     code = code + str(E_false) + '\n'
-    traverse_tree(ast_node.children[2])
+    traverse_tree(ast_node.children[2], nextlist ,breaklist)
 
     code = code + str(E_next) + '\n'
+
+  elif ast_node.name == 'While Statement':
+    E_next = label(name = ast_node.value)
+    E_begin = label(name = ast_node.value)
+
+    code = code + str(E_begin) + '\n'
+    
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    Compare(arg1,0)
+    Jump(E_next)
+    
+    traverse_tree(ast_node.children[1], E_begin ,E_next)
+    Jump(E_begin)
+
+    code = code + str(E_next) + '\n'
+
+  elif ast_node.name == 'BREAK':
+    Jump(breaklist)
+  elif ast_node.name == 'CONTINUE':
+    Jump(nextlist)
+  # elif ast_node.name == 'ForStatement3Exp':
+
+
 
   elif ast_node.name == 'VarDecl and Initialise':
     if ast_node.children[1] is not None: 
-      arg1 = traverse_tree(ast_node.children[1])
+      arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg1 == '':
       arg1 = ast_node.children[1].value
     arg3 = Assignment(ast_node.children[0].value,arg1)
@@ -125,29 +157,27 @@ def traverse_tree(ast_node):
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
         if child is not None: 
-         traverse_tree(child)
+         traverse_tree(child, nextlist ,breaklist)
 
   elif ast_node.name == 'Compound Statement':
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
-        traverse_tree(child)
-    # E_true = label(name = ast_node.value)
-    # code = code + str(E_true) + '\n'
+        traverse_tree(child, nextlist ,breaklist)
 
   # elif ast_node.name == 'struct_declaration_list':
 
   elif ast_node.name == 'Assignment':
-    arg1 = traverse_tree(ast_node.children[1])
+    arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg1 == '':
       arg1 = ast_node.children[1].value
     arg3 = BinOp(ast_node.children[0].value, arg1, '','')
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name == 'Multiplication':
-    arg1 = traverse_tree(ast_node.children[0])
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     if arg1 == '':
       arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1])
+    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg2 == '':
       arg2 = ast_node.children[1].value
     arg = str(newtemp())
@@ -155,10 +185,10 @@ def traverse_tree(ast_node):
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name == 'Modulus Operation':
-    arg1 = traverse_tree(ast_node.children[0])
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     if arg1 == '':
       arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1])
+    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg2 == '':
       arg2 = ast_node.children[1].value
     arg = str(newtemp())
@@ -166,10 +196,10 @@ def traverse_tree(ast_node):
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name == 'Addition':
-    arg1 = traverse_tree(ast_node.children[0])
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     if arg1 == '':
       arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1])
+    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg2 == '':
       arg2 = ast_node.children[1].value
     arg = str(newtemp())
@@ -177,10 +207,10 @@ def traverse_tree(ast_node):
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name == 'Shift':
-    arg1 = traverse_tree(ast_node.children[0])
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     if arg1 == '':
       arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1])
+    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg2 == '':
       arg2 = ast_node.children[1].value
     arg = str(newtemp())
@@ -197,7 +227,7 @@ def traverse_tree(ast_node):
   # elif ast_node.name == 'UnaryOperator':
 
   elif ast_node.name == 'EqualityExpression':
-    arg2 = traverse_tree(ast_node.children[1])
+    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg2 == '':
       arg2 = ast_node.children[1].value
     arg = newtemp()
@@ -212,10 +242,10 @@ def traverse_tree(ast_node):
   #   code = code +'\t' + str(arg1) +'\n'
 
   elif ast_node.name in {'Logical AND','Logical OR'}:
-    arg1 = traverse_tree(ast_node.children[0])
+    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     if arg1 == '':
       arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1])
+    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     if arg2 == '':
       arg2 = ast_node.children[1].value
     arg = str(newtemp())
@@ -241,8 +271,8 @@ def traverse_tree(ast_node):
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
         if child is not None:
-          traverse_tree(child)
+          traverse_tree(child, nextlist ,breaklist)
   return str(arg)
 
-traverse_tree(root)
+traverse_tree(root, None,None)
 print code

@@ -255,7 +255,7 @@ class ast_node(object):
     if self.name == 'EqualityExpression':
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
-      valid = ['double','float','int','unsigned int']
+      valid = ['double','float','int','unsigned int','BOOL']
       if (type_children_0 in valid) and (type_children_1 in valid):
         _type = 'BOOL'
         self.type = _type
@@ -266,7 +266,7 @@ class ast_node(object):
     if self.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
-      valid = ['int','unsigned int']
+      valid = ['int','unsigned int','BOOL']
       if (type_children_0 in valid) and (type_children_1 in valid):
         _type = valid[min([valid.index(type_children_0), valid.index(type_children_1)])]
         self.type = _type
@@ -277,7 +277,7 @@ class ast_node(object):
     if self.name == ('Logical AND' or'Logical OR'):
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
-      valid = ['double','float','int','unsigned int']
+      valid = ['double','float','int','unsigned int','BOOL']
       if (type_children_0 in valid) and (type_children_1 in valid):
         _type = 'BOOL'
         self.type = _type
@@ -1316,7 +1316,7 @@ def main():
     print ('Parsed successfully.......')
     start.traverse_tree()
     print ('Compiled successfully.......')
-    start.print_tree(0)
+    # start.print_tree(0)
     print ('Writing graph to' + fd_2)
     graph.write_png(fd_2)
     print ('Write successful')
