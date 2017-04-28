@@ -388,6 +388,8 @@ class ast_node(object):
 
 # Works for both cases : when the child is variable and when it's a constant
 def fetch_type_from_symbol_table(child):
+  if child.name ==  "StringLiteral":
+    return 'string'
   _type = ''
   if child.name == 'Pointer Dereference' or child.name == 'Address Of Operation':
     return child.type
