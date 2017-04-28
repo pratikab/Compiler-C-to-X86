@@ -24,6 +24,7 @@ scope_level = 0
 scopeNo = 0
 current_function = ''
 current_struct = ''
+is_func_temp = False
 # Checks if the 'Compound Statement' is associated with a function or not
 current_function_used = False
 
@@ -77,6 +78,7 @@ class ast_node(object):
     global current_function_used
     global current_struct
     global current_scope_name
+    global is_func_temp
     if self.name == 'VarAccess':
       found = False
       self.scope_name = current_scope_name
@@ -184,6 +186,9 @@ class ast_node(object):
 
     if self.name == 'Assignment' or self.name == 'VarDecl and Initialise':
       type_lhs = fetch_type_from_symbol_table(self.children[0])
+      if is_func_temp:
+        print 'lineno',self.lineno,'-COMPILATION TERMINATED: type checking failed in assignment. LHS is a function'
+        sys.exit()
       type_rhs = fetch_type_from_symbol_table(self.children[1])
       valid = ['double','float','int','unsigned int']
       if type_rhs in valid and type_lhs in valid:
@@ -345,10 +350,10 @@ class ast_node(object):
         print fetch_type_from_symbol_table(self.children[0])
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: '+ self.children[0].value +' is no struct'
         sys.exit()
-      if self.children[1].value not in symbol_table[0][fetch_type_from_symbol_table(self.children[0]).split(' ')[1]][2].keys():
+      if self.children[1].value not in symbol_table[0][fetch_type_from_symbol_table(self.children[0]).split(' ')[1]][3].keys():
         print 'lineno',self.lineno,'-COMPILATION TERMINATED Struct has no field: ', self.children[1].value
         sys.exit()
-      self.type = symbol_table[0][fetch_type_from_symbol_table(self.children[0]).split(' ')[1]][2][self.children[1].value][0]
+      self.type = symbol_table[0][fetch_type_from_symbol_table(self.children[0]).split(' ')[1]][3][self.children[1].value][0]
 
 
     if self.name == 'Pointer Dereference':
@@ -391,11 +396,15 @@ def fetch_type_from_symbol_table(child):
   if child.name ==  "StringLiteral":
     return 'string'
   _type = ''
+  global is_func_temp
+  is_func_temp = False
   if child.name == 'Pointer Dereference' or child.name == 'Address Of Operation':
     return child.type
   for i in range(0,scope_level+1):
     if child.value in symbol_table[i].keys():
       _type = symbol_table[i][child.value][0]
+      if symbol_table[i][child.value][1] == 'Function':
+        is_func_temp = True
       return _type
     if child.is_var == False:
       _type = child.type
