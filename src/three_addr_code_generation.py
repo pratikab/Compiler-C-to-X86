@@ -2,7 +2,20 @@
 import sys
 import cparser
 
+def get_offset_symbole_table(variable,scope_name):
+  for hash_table in symbol_table:
+    if hash_table['scope_name'] == symbol_table:
+      if variable in hash_table.keys():
+        return var
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+        return 0
+      else:
+        return scope_name(variable,hash_table['parent_scope_name'])
+
 root, symbol_table = cparser.main()
+print symbol_table
 count_label = 0
 count_temp = 0
 code = ''
