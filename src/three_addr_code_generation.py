@@ -11,9 +11,21 @@ root, symbol_table = cparser.main()
 for temp in symbol_table:
   print temp
 
+def get_size_symbole_table(variable,scope_name):
+  for hash_table in symbol_table:
+    if hash_table['scope_name'] == scope_name:
+      if variable in hash_table.keys():
+        return hash_table[variable][4]
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+      else:
+        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+
+
 def get_offset_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
-    if hash_table['scope_name'] == symbol_table:
+    if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
         return hash_table[variable][5]
       elif scope_name == 's0':
@@ -24,7 +36,7 @@ def get_offset_symbole_table(variable,scope_name):
 
 def set_address_symbole_table(variable,scope_name,address):
   for index,hash_table in enumerate(symbol_table):
-    if hash_table['scope_name'] == symbol_table:
+    if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
         symbol_table[index][variable].append(address)
       elif scope_name == 's0':
@@ -244,7 +256,8 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     
     code = code + str(arg1) + '\n'
     data = data + str(arg1) + '\n'
-
+    set_address_symbole_table(ast_node.value, ast_node.scope_name, 50)
+    print get_offset_symbole_table(ast_node.value, ast_node.scope_name)
     BeginFunc()
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
