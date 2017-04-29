@@ -10,7 +10,7 @@ def get_offset_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == symbol_table:
       if variable in hash_table.keys():
-        return hash_table[variable][4]
+        return hash_table[variable][5]
       elif scope_name == 's0':
         print 'Variable not found in symbol table exiting'
         sys.exit()
@@ -27,9 +27,6 @@ def set_address_symbole_table(variable,scope_name,address):
         sys.exit()
       else:
         set_address_symbole_table(variable,hash_table['parent_scope_name'],address)
-
-
-
 
 count_label = 0
 count_temp = 0
@@ -230,7 +227,8 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg3 = BinOp(ast_node.children[0].value, arg1, '','')
     code = code +'\t' + str(arg3) +'\n'
 
-  elif ast_node.name in {'Addition','Logical AND','Logical OR','Multiplication','Modulus Operation','Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
+  elif ast_node.name in {'Addition','Logical AND','Logical OR','Multiplication','Modulus Operation',
+    'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     arg = str(newtemp())

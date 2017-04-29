@@ -13,7 +13,7 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Struct Address Dereference
 
 # Symbol Table is a list of hash tables
-# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not',line_no,struct_scope,offset]
+# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not',line_no,struct_scope,size,offset]
 # It also has the attributes symbol_stable[scope_level]['parent_scope_name'] = 'name of parent scope', 
 # symbol_stable[scope_level]['scope_name'] = 'current score name'
 symbol_table = []
@@ -46,6 +46,13 @@ def add_node(p):
   graph.add_node(node)
   k = k + 1
   return node
+
+def get_size(_type):
+  _dict = {'int':4,'float':8,'char':1,'BOOL':1,'unsigned int':4}
+  if _type in _dict.keys():
+    return _dict[_type]
+  if '*' in _type:
+    return 4
 
 class ast_node(object):
   def __init__(self, name='', value='', type='', children='', modifiers='', dims=0, arraylen=[], sym_entry='',
@@ -97,7 +104,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'',self.lineno,{}]
+        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'',self.lineno,{},get_size(self.type)]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' declared void'
           sys.exit()
@@ -107,7 +114,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable in Struct ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{}]
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{},get_size(self.type)]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value + ' declared void'
           sys.exit()
@@ -126,11 +133,11 @@ class ast_node(object):
         sys.exit()
       else:
         # symbol_table[scope_level - 1][self.value][0] = p[2].type    Correct version todo : try to use p[2].type
-        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{}]
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{},get_size(self.type)]
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno,{}]
+      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno,{},0,get_size(self.type)]
       scope_level = scope_level + 1
       new_hash_table = {}
       new_hash_table = {'parent_scope_name':current_scope_name}
@@ -323,9 +330,11 @@ class ast_node(object):
         sys.exit()
 
     if self.name == 'ArrayDeclaration':
-       if fetch_type_from_symbol_table(self.children[0]) not in ['int','unsigned int']: 
+      if fetch_type_from_symbol_table(self.children[0]) not in ['int','unsigned int']: 
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: error in logical ArrayDeclaration'
         sys.exit()
+      print self.arraylen,get_size(fetch_type_from_symbol_table(self.children[0]))
+      symbol_table[scope_level][self.value][4] = int(self.arraylen[0])*get_size(fetch_type_from_symbol_table(self.children[0]))
 
     if self.name == 'InitializerList':
       for child in self.children:
