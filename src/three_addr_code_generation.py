@@ -8,8 +8,8 @@ fout.write(data)
 
 root, symbol_table = cparser.main()
 # print symbol_table
-for temp in symbol_table:
-  print temp
+# for temp in symbol_table:
+#   print temp
 
 def get_argc_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
@@ -21,6 +21,7 @@ def get_argc_symbole_table(variable,scope_name):
         sys.exit()
       else:
         return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+
 def get_size_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
@@ -37,6 +38,8 @@ def get_offset_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
+        if(hash_table[variable][1].startswith('Function')):
+          return ''
         return hash_table[variable][5]
       elif scope_name == 's0':
         print 'Variable not found in symbol table exiting'
@@ -49,6 +52,7 @@ def set_address_symbole_table(variable,scope_name,address):
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
         symbol_table[index][variable].append(address)
+        # print symbol_table[index][variable]
       elif scope_name == 's0':
         print 'Variable not found in symbol table exiting'
         sys.exit()
@@ -59,6 +63,9 @@ count_label = 0
 count_temp = 0
 code = ''
 data = ''
+offset = 0
+
+
 class label(object):
   def __init__(self,_id = 0,name=''):
     global count_label
@@ -78,13 +85,21 @@ class newtemp(object):
     self._id = count_temp;
     count_temp = count_temp + 1;
   def __repr__(self):
-    return  'T' + str(self.count)
+    p = 'T' + str(self.count)
+    return p
 
 class Assignment():
   """docstring for Assignment"""
-  def __init__(self,source='',destination=''):
+  def __init__(self,source='',sourceadd='', destination='',destinationadd=''):
+    global data
     self.source = source
     self.destination = destination
+    if destinationadd != '':
+      data = data + '\tmov ecx, '+destinationadd+'\n'
+      data = data + '\tmov '+sourceadd+', ecx'+'\n'
+    else:
+      data = data + '\tmov ecx, '+destination+'\n'
+      data = data + '\tmov '+sourceadd+', ecx'+'\n'
   def __repr__(self):
     return self.source + ' = ' + self.destination
 
@@ -109,16 +124,22 @@ def Jump(arg, arg2):
   global code
   global data
   code = code + '\tJMP ' + str(arg) + '\n'
+
 def Compare(arg1, arg2):
   global code
   global data
   code = code + '\tCMP ' + str(arg1) +', ' + str(arg2) + '\n'
-def PushParam(arg1):
+
+def PushParam(arg1,add1):
   global code
   global data
   code = code + '\tPUSH ' + str(arg1)+ '\n'
-  data = data + '\tmov eax, '+str(arg1)+'\n'
+  if add1 == '':
+    data = data + '\tmov eax, '+str(arg1)+'\n'
+  else:
+    data = data + '\tmov eax, '+add1+'\n'
   data = data + '\tpush eax'+'\n'
+
 def FuncCall(arg1):
   global code
   global data
@@ -128,35 +149,51 @@ def FuncCall(arg1):
   data = data + '\tcall ' + str(arg1.value) + '\n'
   for i in range(0,k):
     data = data + '\tpop edx'+'\n'
+
 def Decl(arg1):
+  global offset
+  global code
+  global data
   arg2 = arg1.children[0]
   p = arg2.value
   temp = str(get_size_symbole_table(arg2.value, arg1.scope_name))
-  global code
-  global data
+  data = data + '\tsub ebp, '+str(temp)+'\n'
+  address = "[ebp-"+str(offset+int(temp))+"]"
+  set_address_symbole_table(arg2.value, arg1.scope_name,address)
+  offset =offset+int(temp)
   code = code + '\tDecl ' + str(p)+' '+temp+ '\n'
+  return address
+
 def Ret():
   global code
   global data
   code = code + '\tRET '+ '\n'
+
 def BeginFunc():
   global code
   global data
   code = code + '\tBeginFunc'+'\n'
   data = data + '\tpush ebp'+'\n'
   data = data + '\tmov ebp, esp'+'\n'
+
 def EndFunc():
   global code
   global data
   code = code + '\tEndFunc'+'\n'
   data = data + '\tpop ebp'+'\n'
   data = data + '\tret'+'\n'
+
+
+
 def traverse_tree(ast_node, nextlist ,breaklist):
+  global offset
   global code
   global data
   arg = ''
+  add = ''
   if ast_node.name == 'VarAccess':
     arg = ast_node.value
+    add = get_offset_symbole_table(ast_node.value,ast_node.scope_name)
     # pass
   elif ast_node.name == 'ConstantLiteral':
     arg = ast_node.value
@@ -164,7 +201,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
     
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
     Jump(E_next, "je")
     
@@ -183,7 +220,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_true = label(name = ast_node.value)
     E_false = label(name = ast_node.value)
 
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
     Jump(E_false,"je")
     
@@ -208,7 +245,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     code = code + str(E_begin) + '\n'
     data = data + str(E_begin) + '\n'
     
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
     Jump(E_next,"je")
     
@@ -233,7 +270,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     code = code + str(E_begin) + '\n'
     data = data + str(E_begin) + '\n'
 
-    arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Compare(arg1,0)
     Jump(E_next,"je")
 
@@ -251,19 +288,20 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'VarDecl':
     Decl(ast_node)
   elif ast_node.name == 'VarDecl and Initialise':
-    Decl(ast_node)
+    add2 = Decl(ast_node)
     arg1= ''
+    add1= ''
     if ast_node.children[1] is not None: 
-      arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    arg3 = Assignment(ast_node.children[0].value,arg1)
+      arg1,add1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    arg3 = Assignment(ast_node.children[0].value,add2,arg1,add1)
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name == 'Argument List':
     if len(ast_node.children) > 0 :
       for child in ast_node.children[::-1]:
         if child is not None: 
-          arg1 = traverse_tree(child, nextlist ,breaklist)
-          PushParam(arg1)
+          arg1,add1 = traverse_tree(child, nextlist ,breaklist)
+          PushParam(arg1,add1)
 
   elif ast_node.name == 'FuncCall':
     FuncCall(ast_node.children[0])
@@ -275,6 +313,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     FuncCall(ast_node.children[0])
 
   elif ast_node.name == 'Function_definition':
+    offset = 0
     arg1 = label(name = ast_node.value) 
     temp = ' '+str(get_size_symbole_table(ast_node.value, ast_node.scope_name))
 
@@ -294,27 +333,27 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   #   PopParam(ast_node.value)
 
   elif ast_node.name == 'RETURN_EXPRESSION':
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     # PushParam(arg1)
     Ret()
   elif ast_node.name == 'RETURN':
     Ret()
 
   elif ast_node.name == 'Assignment':
-    arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     arg3 = BinOp(ast_node.children[0].value, arg1, '','')
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name in {'Addition','Logical AND','Logical OR','Multiplication','Modulus Operation',
     'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     arg = str(newtemp())
     arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name == 'UnaryOperator':
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg1,add2 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg3 = ''
     if(ast_node.children[1].value == '++'):
       arg3 = BinOp(str(arg1),str(arg1), '+',str(1))
@@ -339,8 +378,12 @@ def traverse_tree(ast_node, nextlist ,breaklist):
       for child in ast_node.children :
         if child is not None:
           traverse_tree(child, nextlist ,breaklist)
-  return str(arg)
+  return str(arg), add
 
 traverse_tree(root, None,None)
+
 print code
+
+for temp in symbol_table:
+  print temp
 fout.write(data)

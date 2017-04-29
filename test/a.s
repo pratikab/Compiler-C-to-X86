@@ -38,7 +38,12 @@ exit:
 main:
 	push ebp
 	mov ebp, esp
-	mov eax, 560
+	sub ebp, 4
+	mov ecx, 5
+	mov [ebp-4], ecx
+	sub ebp, 4
+	sub ebp, 4
+	mov eax, [ebp-4]
 	push eax
 	call printInt
 	pop edx
