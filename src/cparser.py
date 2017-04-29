@@ -27,8 +27,8 @@ current_struct = ''
 is_func_temp = False
 # Checks if the 'Compound Statement' is associated with a function or not
 current_function_used = False
-symbol_table[0]['printInt'] = ['int', 'Function', -1, {}, 4]
-symbol_table[0]['printString'] = ['int', 'Function', -1, {}, 4]
+symbol_table[0]['printInt'] = ['int', 'Function 1', -1, {}, 4]
+symbol_table[0]['printString'] = ['int', 'Function 1', -1, {}, 4]
 def add_edge(node_parent,node_child):
   graph.add_edge(pydot.Edge(node_parent, node_child))
 
@@ -57,7 +57,7 @@ def get_size(_type):
 
 class ast_node(object):
   def __init__(self, name='', value='', type='', children='', modifiers='', dims=0, arraylen=[], sym_entry='',
-   lineno=0,tag = '',pydot_Node = None, is_var = False, scope_name = ''):
+   lineno=0,tag = '',pydot_Node = None, is_var = False, scope_name = '',arg_count=0):
     self.name = name
     self.value = value
     self.type = type
@@ -67,6 +67,7 @@ class ast_node(object):
     self.pydot_Node = None
     self.is_var = is_var
     self.scope_name = scope_name
+    self.arg_count = arg_count
     if modifiers:
         self.modifiers = modifiers
     else:
@@ -138,9 +139,10 @@ class ast_node(object):
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno,{},get_size(self.type)]
+      symbol_table[scope_level][self.value] = [self.type, 'Function'+' '+str(self.arg_count),self.lineno,{},get_size(self.type)]
       self.scope_name = current_scope_name
       scope_level = scope_level + 1
+      self.scope_name = current_scope_name
       new_hash_table = {}
       new_hash_table = {'parent_scope_name':current_scope_name}
       current_scope_name = newScopeName()
@@ -415,7 +417,7 @@ def fetch_type_from_symbol_table(child):
   for i in range(0,scope_level+1):
     if child.value in symbol_table[i].keys():
       _type = symbol_table[i][child.value][0]
-      if symbol_table[i][child.value][1] == 'Function':
+      if symbol_table[i][child.value][1].startswith('Function'):
         is_func_temp = True
       return _type
     if child.is_var == False:
@@ -945,6 +947,7 @@ def p_direct_declarator_4(p):
   '''direct_declarator  : direct_declarator '(' parameter_type_list ')'
                         '''
   p[0] = ast_node('Function Arguments',value = p[1].value,type ='',children = [p[1],p[3]], lineno = p[1].lineno)
+  p[0].arg_count = p[3].arg_count
 def p_direct_declarator_5(p):
   '''direct_declarator  : direct_declarator '(' ')'
                         '''
@@ -953,6 +956,7 @@ def p_direct_declarator_6(p):
   '''direct_declarator  : direct_declarator '(' identifier_list ')'
                         '''
   p[0] = ast_node('Function Arguments',value = p[1].value,type ='',children = [p[1],p[3]], lineno = p[1].lineno)
+  p[0].arg_count = p[3].arg_count
 def p_pointer(p):
   '''pointer  : '*'
               '''
@@ -990,11 +994,13 @@ def p_parameter_list(p):
                       '''
   if len(p) == 2:
     p[0] = ast_node('paramater_list',value = '', type = '', children = [p[1]], lineno = p[1].lineno)
+    p[0].arg_count = 1
   else:
     if p[1].name != 'paramater_list':
       p[1] = ast_node('paramater_list',value = '', type = '', children = [], lineno = p[1].lineno)
     p[1].children.append(p[3])
     p[0] = p[1]
+    p[0].arg_count = p[1].arg_count + 1
 
 def p_parameter_declaration(p):
   '''parameter_declaration  : declaration_specifiers declarator
@@ -1297,9 +1303,11 @@ def p_function_definition(p):
                           '''
   if len(p) == 4:
     p[0] = ast_node('Function_definition',value = p[2].value,type =p[1].type ,children = [p[2],p[3]], lineno = p[1].lineno)
+    p[0].arg_count = p[2].arg_count
   else:
     p[0] = ast_node('Function_definition',value = p[2].value,type =p[1].type ,children = [p[2],p[3],p[4]], lineno = p[1].lineno)
-  
+    p[0].arg_count = p[2].arg_count
+
 def p_declaration_list(p):
   '''declaration_list   : declaration_list declaration
                         | declaration
@@ -1336,7 +1344,7 @@ def main():
     print ('Compiled successfully.......')
     start.print_tree(0)
     print ('Writing graph to' + fd_2)
-    graph.write_png(fd_2)
+    # graph.write_png(fd_2)
     print ('Write successful')
     global full_symbol_table
     

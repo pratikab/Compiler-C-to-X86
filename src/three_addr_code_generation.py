@@ -11,6 +11,16 @@ root, symbol_table = cparser.main()
 for temp in symbol_table:
   print temp
 
+def get_argc_symbole_table(variable,scope_name):
+  for hash_table in symbol_table:
+    if hash_table['scope_name'] == scope_name:
+      if variable in hash_table.keys():
+        return hash_table[variable][1].split(' ')[1]
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+      else:
+        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
 def get_size_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
@@ -59,7 +69,7 @@ class label(object):
       count_label = count_label + 1;
     self.name = name
   def __repr__(self):
-    return self.name
+    return (self.name+':')
 
 class newtemp(object):
   def __init__(self,_id = 0):
@@ -95,7 +105,7 @@ class BinOp():
   def __repr__(self):
     return self.destination + ' = ' + self.source_1 + self.operand + self.source_2
 
-def Jump(arg):
+def Jump(arg, arg2):
   global code
   global data
   code = code + '\tJMP ' + str(arg) + '\n'
@@ -107,14 +117,24 @@ def PushParam(arg1):
   global code
   global data
   code = code + '\tPUSH ' + str(arg1)+ '\n'
+  data = data + '\tmov eax, '+str(arg1)+'\n'
+  data = data + '\tpush eax'+'\n'
 def FuncCall(arg1):
   global code
   global data
-  code = code + '\tCALL ' + str(arg1)+ '\n'
+  k = int(get_argc_symbole_table(str(arg1.value),'s0'))
+  # print "+++",get_argc_symbole_table(str(arg1.value),'s0')
+  code = code + '\tCALL ' + str(arg1.value)+ '\n'
+  data = data + '\tcall ' + str(arg1.value) + '\n'
+  for i in range(0,k):
+    data = data + '\tpop edx'+'\n'
 def Decl(arg1):
+  arg2 = arg1.children[0]
+  p = arg2.value
+  temp = str(get_size_symbole_table(arg2.value, arg1.scope_name))
   global code
   global data
-  code = code + '\tDecl ' + str(arg1)+ '\n'
+  code = code + '\tDecl ' + str(p)+' '+temp+ '\n'
 def Ret():
   global code
   global data
@@ -123,11 +143,14 @@ def BeginFunc():
   global code
   global data
   code = code + '\tBeginFunc'+'\n'
+  data = data + '\tpush ebp'+'\n'
+  data = data + '\tmov ebp, esp'+'\n'
 def EndFunc():
   global code
   global data
   code = code + '\tEndFunc'+'\n'
-
+  data = data + '\tpop ebp'+'\n'
+  data = data + '\tret'+'\n'
 def traverse_tree(ast_node, nextlist ,breaklist):
   global code
   global data
@@ -143,13 +166,13 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
-    Jump(E_next)
+    Jump(E_next, "je")
     
     code = code + str(E_true) + '\n'
     data = data + str(E_true) + '\n'
 
     traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    Jump(E_next)
+    Jump(E_next,"jmp")
     
     code = code + str(E_next) + '\n'
     data = data + str(E_next) + '\n'
@@ -162,13 +185,13 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
-    Jump(E_false)
+    Jump(E_false,"je")
     
     code = code + str(E_true) + '\n'
     data = data + str(E_true) + '\n'
 
     traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    Jump(E_next)
+    Jump(E_next,"jmp")
 
     code = code + str(E_false) + '\n'
     data = data + str(E_false) + '\n'
@@ -187,18 +210,18 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
-    Jump(E_next)
+    Jump(E_next,"je")
     
     traverse_tree(ast_node.children[1], E_begin ,E_next)
-    Jump(E_begin)
+    Jump(E_begin,"jmp")
 
     code = code + str(E_next) + '\n'
     data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'BREAK':
-    Jump(breaklist)
+    Jump(breaklist,"jmp")
   elif ast_node.name == 'CONTINUE':
-    Jump(nextlist)
+    Jump(nextlist,"jmp")
 
   elif ast_node.name == 'ForStatement3Exp':
     traverse_tree(ast_node.children[0], nextlist ,breaklist)
@@ -212,7 +235,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
     arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Compare(arg1,0)
-    Jump(E_next)
+    Jump(E_next,"je")
 
     traverse_tree(ast_node.children[3], E_end ,E_next)
 
@@ -220,15 +243,15 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     data = data + str(E_end) + '\n'
 
     traverse_tree(ast_node.children[2], nextlist ,breaklist)
-    Jump(E_begin)
+    Jump(E_begin,"jmp")
 
     code = code + str(E_next) + '\n'
     data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl':
-    Decl(ast_node.children[0].value)
+    Decl(ast_node)
   elif ast_node.name == 'VarDecl and Initialise':
-    Decl(ast_node.children[0].value)
+    Decl(ast_node)
     arg1= ''
     if ast_node.children[1] is not None: 
       arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
@@ -243,21 +266,24 @@ def traverse_tree(ast_node, nextlist ,breaklist):
           PushParam(arg1)
 
   elif ast_node.name == 'FuncCall':
-    FuncCall(ast_node.children[0].value)
+    FuncCall(ast_node.children[0])
 
   elif ast_node.name == 'FuncCallwithArgs':
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
         traverse_tree(child, nextlist ,breaklist)
-    FuncCall(ast_node.children[0].value)
+    FuncCall(ast_node.children[0])
 
   elif ast_node.name == 'Function_definition':
-    arg1 = label(name = ast_node.value)
-    
-    code = code + str(arg1) + '\n'
+    arg1 = label(name = ast_node.value) 
+    temp = ' '+str(get_size_symbole_table(ast_node.value, ast_node.scope_name))
+
+    code = code + str(arg1) +temp + '\n'
     data = data + str(arg1) + '\n'
-    set_address_symbole_table(ast_node.value, ast_node.scope_name, 50)
-    print get_offset_symbole_table(ast_node.value, ast_node.scope_name)
+
+    # set_address_symbole_table(ast_node.value, ast_node.scope_name, 50)
+    # print get_offset_symbole_table(ast_node.value, ast_node.scope_name)
+
     BeginFunc()
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
@@ -269,7 +295,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
   elif ast_node.name == 'RETURN_EXPRESSION':
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    PushParam(arg1)
+    # PushParam(arg1)
     Ret()
   elif ast_node.name == 'RETURN':
     Ret()
@@ -317,3 +343,4 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
 traverse_tree(root, None,None)
 print code
+fout.write(data)

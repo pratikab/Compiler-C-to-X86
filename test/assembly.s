@@ -35,9 +35,11 @@ exit:
 	pop ebp
 	ret
 main:
+	push ebp
+	mov ebp, esp
 	mov eax , 45
 	push eax
 	call printInt
-	mov eax, 1
-	mov ebx, 0
-	int 0x80
+	pop edx
+	pop ebp
+	ret
