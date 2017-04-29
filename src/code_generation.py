@@ -1,12 +1,14 @@
 #!/usr/bin/python
 import sys
 import cparser
+import three_addr_code_generation
 fout = open("../test/a.s", "wb")
 with open ("../test/lib.s", 'r') as myfile:
       data=myfile.read()
 fout.write(data)
 
-root, symbol_table = cparser.main()
+root, symbol_table = three_addr_code_generation.main()
+
 # print symbol_table
 # for temp in symbol_table:
 #   print temp
@@ -158,11 +160,7 @@ def Decl(arg1):
   p = arg2.value
   temp = str(get_size_symbole_table(arg2.value, arg1.scope_name))
   data = data + '\tsub ebp, '+str(temp)+'\n'
-  address = "[ebp-"+str(offset+int(temp))+"]"
-  set_address_symbole_table(arg2.value, arg1.scope_name,address)
-  offset =offset+int(temp)
   code = code + '\tDecl ' + str(p)+' '+temp+ '\n'
-  return address
 
 def Ret():
   global code
@@ -288,7 +286,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'VarDecl':
     Decl(ast_node)
   elif ast_node.name == 'VarDecl and Initialise':
-    add2 = Decl(ast_node)
+    add2 = ''
     arg1= ''
     add1= ''
     if ast_node.children[1] is not None: 
@@ -329,7 +327,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
         if child is not None: 
           traverse_tree(child, nextlist ,breaklist)
     EndFunc()
-    symbol_table[0][ast_node.value][1] = symbol_table[0][ast_node.value][1] + ' ' + str(offset)
   # elif ast_node.name == 'paramater':
   #   PopParam(ast_node.value)
 
@@ -349,15 +346,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    # for index,hash_table in enumerate(symbol_table):
-    #   if hash_table['scope_name'] == 's0':
     arg = str(newtemp())
-    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
- 
-    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg, 's0',address)
-    offset =offset+int(cparser.get_size(ast_node.type))
-
     arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
     code = code +'\t' + str(arg3) +'\n'
 
@@ -389,7 +378,10 @@ def traverse_tree(ast_node, nextlist ,breaklist):
           traverse_tree(child, nextlist ,breaklist)
   return str(arg), add
 
-def main():
-  global symbol_table, root
-  traverse_tree(root, None,None)
-  return root, symbol_table
+traverse_tree(root, None,None)
+
+print code
+
+for temp in symbol_table:
+  print temp
+fout.write(data)
