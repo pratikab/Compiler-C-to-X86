@@ -1,4 +1,5 @@
 #include<stdio.h>
+int printf();
 struct S
 {
     int a;

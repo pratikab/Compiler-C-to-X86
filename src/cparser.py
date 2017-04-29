@@ -13,7 +13,7 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Struct Address Dereference
 
 # Symbol Table is a list of hash tables
-# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not']
+# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not',line_no,struct_scope,offset]
 # It also has the attributes symbol_stable[scope_level]['parent_scope_name'] = 'name of parent scope', 
 # symbol_stable[scope_level]['scope_name'] = 'current score name'
 symbol_table = []
@@ -97,7 +97,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'',self.lineno]
+        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'',self.lineno,{}]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' declared void'
           sys.exit()
@@ -107,7 +107,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable in Struct ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value] = [self.type,'',self.lineno]
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{}]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value + ' declared void'
           sys.exit()
@@ -126,11 +126,11 @@ class ast_node(object):
         sys.exit()
       else:
         # symbol_table[scope_level - 1][self.value][0] = p[2].type    Correct version todo : try to use p[2].type
-        symbol_table[scope_level][self.value] = [self.type,'',self.lineno]
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{}]
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno]
+      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno,{}]
       scope_level = scope_level + 1
       new_hash_table = {}
       new_hash_table = {'parent_scope_name':current_scope_name}
@@ -168,9 +168,11 @@ class ast_node(object):
     if self.name == 'Compound Statement':
       if len(full_symbol_table) > scope_level + 1:
         full_symbol_table[scope_level].append(symbol_table[scope_level])
+        pass
       else:
-        full_symbol_table.append([symbol_table[scope_level]])
+        full_symbol_table.append(symbol_table[scope_level])
       current_scope_name = symbol_table[scope_level]['parent_scope_name']
+      print symbol_table
       del symbol_table[scope_level]
       scope_level = scope_level - 1
 
@@ -180,7 +182,8 @@ class ast_node(object):
       if len(full_symbol_table) > scope_level + 1:
         full_symbol_table[scope_level].append(symbol_table[scope_level])
       else:
-        full_symbol_table.append([symbol_table[scope_level]])
+        full_symbol_table.append(symbol_table[scope_level])
+      print symbol_table
       del symbol_table[scope_level]
       scope_level = scope_level - 1
 
@@ -1322,11 +1325,12 @@ def main():
     print ('Parsed successfully.......')
     start.traverse_tree()
     print ('Compiled successfully.......')
-    # start.print_tree(0)
-    # print ('Writing graph to' + fd_2)
-    # # graph.write_png(fd_2)
-    # print ('Write successful')
-    full_symbol_table[0] = symbol_table + full_symbol_table[0]
+    start.print_tree(0)
+    print ('Writing graph to' + fd_2)
+    graph.write_png(fd_2)
+    print ('Write successful')
+    global full_symbol_table
+    full_symbol_table = symbol_table + full_symbol_table
     return start, full_symbol_table
   else :
     yacc.yacc( start='translation_unit')

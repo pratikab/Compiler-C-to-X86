@@ -1,5 +1,5 @@
 #include<stdio.h>
-
+int printf();
 struct s {
     int a;
     float b;

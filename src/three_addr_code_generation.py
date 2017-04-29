@@ -10,13 +10,26 @@ def get_offset_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == symbol_table:
       if variable in hash_table.keys():
-        return var
+        return hash_table[variable][4]
       elif scope_name == 's0':
         print 'Variable not found in symbol table exiting'
         sys.exit()
-        return 0
       else:
-        return scope_name(variable,hash_table['parent_scope_name'])
+        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+
+def set_address_symbole_table(variable,scope_name,address):
+  for index,hash_table in enumerate(symbol_table):
+    if hash_table['scope_name'] == symbol_table:
+      if variable in hash_table.keys():
+        symbol_table[index][variable].append(address)
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+      else:
+        set_address_symbole_table(variable,hash_table['parent_scope_name'],address)
+
+
+
 
 count_label = 0
 count_temp = 0
