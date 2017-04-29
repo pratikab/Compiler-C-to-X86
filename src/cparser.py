@@ -137,7 +137,7 @@ class ast_node(object):
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
-      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno,{},0,get_size(self.type)]
+      symbol_table[scope_level][self.value] = [self.type, 'Function',self.lineno,{},get_size(self.type)]
       scope_level = scope_level + 1
       new_hash_table = {}
       new_hash_table = {'parent_scope_name':current_scope_name}
@@ -1339,6 +1339,8 @@ def main():
     graph.write_png(fd_2)
     print ('Write successful')
     global full_symbol_table
+    symbol_table[0]['printInt'] = ['int', 'Function', -1, {}, 4]
+    symbol_table[0]['printString'] = ['int', 'Function', -1, {}, 4]
     full_symbol_table = symbol_table + full_symbol_table
     return start, full_symbol_table
   else :
