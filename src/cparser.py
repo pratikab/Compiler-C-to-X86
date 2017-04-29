@@ -27,7 +27,8 @@ current_struct = ''
 is_func_temp = False
 # Checks if the 'Compound Statement' is associated with a function or not
 current_function_used = False
-
+symbol_table[0]['printInt'] = ['int', 'Function', -1, {}, 4]
+symbol_table[0]['printString'] = ['int', 'Function', -1, {}, 4]
 def add_edge(node_parent,node_child):
   graph.add_edge(pydot.Edge(node_parent, node_child))
 
@@ -1337,8 +1338,7 @@ def main():
     graph.write_png(fd_2)
     print ('Write successful')
     global full_symbol_table
-    symbol_table[0]['printInt'] = ['int', 'Function', -1, {}, 4]
-    symbol_table[0]['printString'] = ['int', 'Function', -1, {}, 4]
+    
     full_symbol_table = symbol_table + full_symbol_table
     return start, full_symbol_table
   else :

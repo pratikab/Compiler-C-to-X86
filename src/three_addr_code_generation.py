@@ -1,7 +1,10 @@
 #!/usr/bin/python
 import sys
 import cparser
-
+fout = open("../test/a.s", "wb")
+with open ("../test/lib.s", 'r') as myfile:
+      data=myfile.read()
+fout.write(data)
 
 root, symbol_table = cparser.main()
 # print symbol_table
@@ -33,6 +36,7 @@ def set_address_symbole_table(variable,scope_name,address):
 count_label = 0
 count_temp = 0
 code = ''
+data = ''
 class label(object):
   def __init__(self,_id = 0,name=''):
     global count_label
@@ -81,26 +85,40 @@ class BinOp():
 
 def Jump(arg):
   global code
+  global data
   code = code + '\tJMP ' + str(arg) + '\n'
 def Compare(arg1, arg2):
   global code
+  global data
   code = code + '\tCMP ' + str(arg1) +', ' + str(arg2) + '\n'
 def PushParam(arg1):
   global code
+  global data
   code = code + '\tPUSH ' + str(arg1)+ '\n'
 def FuncCall(arg1):
   global code
+  global data
   code = code + '\tCALL ' + str(arg1)+ '\n'
 def Decl(arg1):
   global code
+  global data
   code = code + '\tDecl ' + str(arg1)+ '\n'
 def Ret():
   global code
+  global data
   code = code + '\tRET '+ '\n'
-
+def BeginFunc():
+  global code
+  global data
+  code = code + '\tBeginFunc'+'\n'
+def EndFunc():
+  global code
+  global data
+  code = code + '\tEndFunc'+'\n'
 
 def traverse_tree(ast_node, nextlist ,breaklist):
   global code
+  global data
   arg = ''
   if ast_node.name == 'VarAccess':
     arg = ast_node.value
@@ -116,10 +134,13 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_next)
     
     code = code + str(E_true) + '\n'
+    data = data + str(E_true) + '\n'
+
     traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Jump(E_next)
     
     code = code + str(E_next) + '\n'
+    data = data + str(E_next) + '\n'
 
 
   elif ast_node.name == 'IF-Else Statement':
@@ -132,19 +153,25 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_false)
     
     code = code + str(E_true) + '\n'
+    data = data + str(E_true) + '\n'
+
     traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Jump(E_next)
 
     code = code + str(E_false) + '\n'
+    data = data + str(E_false) + '\n'
+
     traverse_tree(ast_node.children[2], nextlist ,breaklist)
 
     code = code + str(E_next) + '\n'
+    data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'While Statement':
     E_next = label(name = ast_node.value)
     E_begin = label(name = ast_node.value)
 
     code = code + str(E_begin) + '\n'
+    data = data + str(E_begin) + '\n'
     
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
@@ -154,6 +181,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_begin)
 
     code = code + str(E_next) + '\n'
+    data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'BREAK':
     Jump(breaklist)
@@ -168,6 +196,8 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_end = label(name = ast_node.value)
 
     code = code + str(E_begin) + '\n'
+    data = data + str(E_begin) + '\n'
+
     arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Compare(arg1,0)
     Jump(E_next)
@@ -175,11 +205,13 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     traverse_tree(ast_node.children[3], E_end ,E_next)
 
     code = code + str(E_end) + '\n'
+    data = data + str(E_end) + '\n'
 
     traverse_tree(ast_node.children[2], nextlist ,breaklist)
     Jump(E_begin)
 
     code = code + str(E_next) + '\n'
+    data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl':
     Decl(ast_node.children[0].value)
@@ -209,11 +241,16 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
   elif ast_node.name == 'Function_definition':
     arg1 = label(name = ast_node.value)
+    
     code = code + str(arg1) + '\n'
+    data = data + str(arg1) + '\n'
+
+    BeginFunc()
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
         if child is not None: 
           traverse_tree(child, nextlist ,breaklist)
+    EndFunc()
   # elif ast_node.name == 'paramater':
   #   PopParam(ast_node.value)
 
