@@ -1,10 +1,6 @@
 #!/usr/bin/python
 import sys
 import cparser
-fout = open("../test/a.s", "wb")
-with open ("../test/lib.s", 'r') as myfile:
-      data=myfile.read()
-fout.write(data)
 
 root, symbol_table = cparser.main()
 # print symbol_table
@@ -62,7 +58,6 @@ def set_address_symbole_table(variable,scope_name,address):
 count_label = 0
 count_temp = 0
 code = ''
-data = ''
 offset = 0
 
 
@@ -91,15 +86,8 @@ class newtemp(object):
 class Assignment():
   """docstring for Assignment"""
   def __init__(self,source='',sourceadd='', destination='',destinationadd=''):
-    global data
     self.source = source
     self.destination = destination
-    if destinationadd != '':
-      data = data + '\tmov ecx, '+destinationadd+'\n'
-      data = data + '\tmov '+sourceadd+', ecx'+'\n'
-    else:
-      data = data + '\tmov ecx, '+destination+'\n'
-      data = data + '\tmov '+sourceadd+', ecx'+'\n'
   def __repr__(self):
     return self.source + ' = ' + self.destination
 
@@ -122,42 +110,28 @@ class BinOp():
 
 def Jump(arg, arg2):
   global code
-  global data
   code = code + '\tJMP ' + str(arg) + '\n'
 
 def Compare(arg1, arg2):
   global code
-  global data
   code = code + '\tCMP ' + str(arg1) +', ' + str(arg2) + '\n'
 
 def PushParam(arg1,add1):
   global code
-  global data
   code = code + '\tPUSH ' + str(arg1)+ '\n'
-  if add1 == '':
-    data = data + '\tmov eax, '+str(arg1)+'\n'
-  else:
-    data = data + '\tmov eax, '+add1+'\n'
-  data = data + '\tpush eax'+'\n'
 
 def FuncCall(arg1):
   global code
-  global data
   k = int(get_argc_symbole_table(str(arg1.value),'s0'))
   # print "+++",get_argc_symbole_table(str(arg1.value),'s0')
   code = code + '\tCALL ' + str(arg1.value)+ '\n'
-  data = data + '\tcall ' + str(arg1.value) + '\n'
-  for i in range(0,k):
-    data = data + '\tpop edx'+'\n'
 
 def Decl(arg1):
   global offset
   global code
-  global data
   arg2 = arg1.children[0]
   p = arg2.value
   temp = str(get_size_symbole_table(arg2.value, arg1.scope_name))
-  data = data + '\tsub ebp, '+str(temp)+'\n'
   address = "[ebp-"+str(offset+int(temp))+"]"
   set_address_symbole_table(arg2.value, arg1.scope_name,address)
   offset =offset+int(temp)
@@ -166,29 +140,21 @@ def Decl(arg1):
 
 def Ret():
   global code
-  global data
   code = code + '\tRET '+ '\n'
 
 def BeginFunc():
   global code
-  global data
   code = code + '\tBeginFunc'+'\n'
-  data = data + '\tpush ebp'+'\n'
-  data = data + '\tmov ebp, esp'+'\n'
 
 def EndFunc():
   global code
-  global data
   code = code + '\tEndFunc'+'\n'
-  data = data + '\tpop ebp'+'\n'
-  data = data + '\tret'+'\n'
 
 
 
 def traverse_tree(ast_node, nextlist ,breaklist):
   global offset
   global code
-  global data
   arg = ''
   add = ''
   if ast_node.name == 'VarAccess':
@@ -206,13 +172,11 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_next, "je")
     
     code = code + str(E_true) + '\n'
-    data = data + str(E_true) + '\n'
 
     traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Jump(E_next,"jmp")
     
     code = code + str(E_next) + '\n'
-    data = data + str(E_next) + '\n'
 
 
   elif ast_node.name == 'IF-Else Statement':
@@ -225,25 +189,21 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_false,"je")
     
     code = code + str(E_true) + '\n'
-    data = data + str(E_true) + '\n'
 
     traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Jump(E_next,"jmp")
 
     code = code + str(E_false) + '\n'
-    data = data + str(E_false) + '\n'
 
     traverse_tree(ast_node.children[2], nextlist ,breaklist)
 
     code = code + str(E_next) + '\n'
-    data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'While Statement':
     E_next = label(name = ast_node.value)
     E_begin = label(name = ast_node.value)
 
     code = code + str(E_begin) + '\n'
-    data = data + str(E_begin) + '\n'
     
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Compare(arg1,0)
@@ -253,7 +213,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_begin,"jmp")
 
     code = code + str(E_next) + '\n'
-    data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'BREAK':
     Jump(breaklist,"jmp")
@@ -268,7 +227,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_end = label(name = ast_node.value)
 
     code = code + str(E_begin) + '\n'
-    data = data + str(E_begin) + '\n'
 
     arg1,add1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Compare(arg1,0)
@@ -277,13 +235,11 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     traverse_tree(ast_node.children[3], E_end ,E_next)
 
     code = code + str(E_end) + '\n'
-    data = data + str(E_end) + '\n'
 
     traverse_tree(ast_node.children[2], nextlist ,breaklist)
     Jump(E_begin,"jmp")
 
     code = code + str(E_next) + '\n'
-    data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl':
     Decl(ast_node)
@@ -318,7 +274,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     temp = ' '+str(get_size_symbole_table(ast_node.value, ast_node.scope_name))
 
     code = code + str(arg1) +temp + '\n'
-    data = data + str(arg1) + '\n'
 
     # set_address_symbole_table(ast_node.value, ast_node.scope_name, 50)
     # print get_offset_symbole_table(ast_node.value, ast_node.scope_name)
@@ -344,6 +299,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg1,add1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     arg3 = BinOp(ast_node.children[0].value, arg1, '','')
     code = code +'\t' + str(arg3) +'\n'
+    arg = ast_node.children[0].value
 
   elif ast_node.name in {'Addition','Logical AND','Logical OR','Multiplication','Modulus Operation',
     'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
@@ -390,6 +346,8 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   return str(arg), add
 
 def main():
-  global symbol_table, root
+  global symbol_table, root,code
   traverse_tree(root, None,None)
+  print code
   return root, symbol_table
+

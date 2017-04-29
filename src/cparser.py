@@ -1337,15 +1337,15 @@ def main():
     yacc.yacc( start='translation_unit')
     with open (fd, 'r') as myfile:
       data=myfile.read()
-    print('File read complete........')
+    # print('File read complete........')
     yacc.parse(data)
-    print ('Parsed successfully.......')
+    # print ('Parsed successfully.......')
     start.traverse_tree()
     print ('Compiled successfully.......')
-    start.print_tree(0)
-    print ('Writing graph to' + fd_2)
+    # start.print_tree(0)
+    # print ('Writing graph to' + fd_2)
     # graph.write_png(fd_2)
-    print ('Write successful')
+    # print ('Write successful')
     global full_symbol_table
     
     full_symbol_table = symbol_table + full_symbol_table
