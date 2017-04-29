@@ -174,12 +174,10 @@ class ast_node(object):
 
     if self.name == 'Compound Statement':
       if len(full_symbol_table) > scope_level + 1:
-        full_symbol_table[scope_level].append(symbol_table[scope_level])
-        pass
+        full_symbol_table.append(symbol_table[scope_level])
       else:
         full_symbol_table.append(symbol_table[scope_level])
       current_scope_name = symbol_table[scope_level]['parent_scope_name']
-      print symbol_table
       del symbol_table[scope_level]
       scope_level = scope_level - 1
 
@@ -190,7 +188,7 @@ class ast_node(object):
         full_symbol_table[scope_level].append(symbol_table[scope_level])
       else:
         full_symbol_table.append(symbol_table[scope_level])
-      print symbol_table
+      current_scope_name = symbol_table[scope_level]['parent_scope_name']
       del symbol_table[scope_level]
       scope_level = scope_level - 1
 
@@ -1334,7 +1332,7 @@ def main():
     print ('Parsed successfully.......')
     start.traverse_tree()
     print ('Compiled successfully.......')
-    start.print_tree(0)
+    # start.print_tree(0)
     print ('Writing graph to' + fd_2)
     graph.write_png(fd_2)
     print ('Write successful')

@@ -4,7 +4,9 @@ import cparser
 
 
 root, symbol_table = cparser.main()
-print symbol_table
+# print symbol_table
+for temp in symbol_table:
+  print temp
 
 def get_offset_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
