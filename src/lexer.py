@@ -10,7 +10,6 @@ reserved = {
     'do' : 'DO',
     'double' : 'DOUBLE',    
     'else' : 'ELSE',
-    'enum' : 'ENUM',
     'extern' : 'EXTERN',
     'float' : 'FLOAT',
     'for' : 'FOR',
@@ -116,5 +115,5 @@ def t_preprocessor(t):
     t.lexer.lineno += 1
 
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
+    print("Illegal character '%s', lineno %s" % t.value[0] , t.lexer.lineno)
     t.lexer.skip(1)

@@ -330,7 +330,7 @@ class ast_node(object):
     if self.name == 'Pointer Dereference':
       self.type = fetch_type_from_symbol_table(self.children[0]).split(' ')[0]
 
-    if self.name == 'Address Of Operationx':
+    if self.name == 'Address Of Operation':
       self.type = fetch_type_from_symbol_table(self.children[0])+' *'
 
   def print_tree(self,depth):
@@ -441,7 +441,8 @@ def p_postfix_expression_5(p):
   '''postfix_expression   : postfix_expression INC_OP
                           | postfix_expression DEC_OP
                          '''
-  p[0] = ast_node('UnaryOperator',value = p[1].value, type = p[1].type, children =[p[1]], lineno = p[1].lineno)
+  temp = ast_node('',value=p[2], lineno=p[1].lineno)
+  p[0] = ast_node('UnaryOperator',value = p[1].value, type = p[1].type, children =[p[1],temp], lineno = p[1].lineno)
 def p_postfix_expression_6(p):
   '''postfix_expression   : '(' type_name ')' '{' initializer_list '}'
                           | '(' type_name ')' '{' initializer_list ',' '}'
@@ -743,7 +744,6 @@ def p_type_specifier(p):
 
 def p_type_specifier_1(p):
   '''type_specifier   : struct_or_union_specifier
-                      | enum_specifier
                       '''
   p[0] = ast_node('',value = p[1].value,type =p[1].type,children = [p[1]], lineno = p[1].lineno)
 
@@ -833,37 +833,7 @@ def p_struct_declarator(p):
     pass
   else: 
     pass
-def p_enum_specifier(p):
-  '''enum_specifier     : ENUM '{' enumerator_list '}'
-                        '''
-def p_enum_specifier_1(p):
-  '''enum_specifier     : ENUM '{' enumerator_list ',' '}'
-                        '''
-def p_enum_specifier_2(p):
-  '''enum_specifier     : ENUM identifier '{' enumerator_list '}'
-                        '''
-def p_enum_specifier_3(p):
-  '''enum_specifier     : ENUM identifier '{' enumerator_list ',' '}'
-                       '''
-def p_enum_specifier_4(p):
-  '''enum_specifier     : ENUM identifier
-                        '''
-def p_enumerator_list(p):
-  '''enumerator_list  : enumerator
-                      | enumerator_list ',' enumerator
-                      '''
-  if len(p) == 2:
-    p[0] = p[1]
-  else: 
-    pass
-def p_enumerator(p):
-  '''enumerator   : identifier
-                  | identifier '=' constant_expression
-                  '''
-  if len(p) == 2:
-    p[0] = p[1]
-  else: 
-    pass
+
 def p_type_qualifier(p):
   '''type_qualifier   : CONST
                       | VOLATILE
@@ -935,6 +905,7 @@ def p_direct_declarator_5(p):
 def p_direct_declarator_6(p):
   '''direct_declarator  : direct_declarator '(' identifier_list ')'
                         '''
+  print "********"
   p[0] = ast_node('Function Arguments',value = p[1].value,type ='',children = [p[1],p[3]], lineno = p[1].lineno)
 def p_pointer(p):
   '''pointer  : '*'
@@ -1300,6 +1271,7 @@ def p_error(p):
         print("Syntax error at '%s'" % p.value+ ' at line number ' + str(p.lineno))
     else:
         print('Syntax error at EOF')
+    sys.exit()
 
 def main():
   if len(sys.argv) >= 2:
