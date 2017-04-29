@@ -151,14 +151,34 @@ class BinOp():
       data = data + '\tcdq\n'
       data = data + '\tidiv ecx\n'
       data = data + '\tmov '+destination+', edx'+'\n'
+    if operand == '==':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\tcmp ebx, ecx\n'
+      data = data + '\tsete al\n'
+      data = data + '\tmov '+destination+', al'+'\n'
   def __repr__(self):
     return self.destination + ' = ' + self.source_1 + self.operand + self.source_2
 
 def Jump(arg, arg2):
   global data
+  if(arg2 == 'je'):
+    data = data + '\tje '+str(arg).rstrip(':')+'\n'
+  if(arg2 == 'jmp'):
+    data = data + '\tjmp '+str(arg).rstrip(':')+'\n'
 
-def Compare(arg1, arg2):
+def Compare(arg1,add1,arg2,add2):
   global data
+  a1 = arg1
+  a2 = arg2
+  if add1 != '':
+      a1 = add1
+  if add2 != '':
+      a2 = add2
+  data = data + '\tmov ebx, ' + str(a1)+'\n'
+  data = data + '\tmov ecx, ' + str(a2)+'\n'
+  data = data + '\tcmp ebx, ecx\n'
+
 
 def PushParam(arg1,add1):
   global data
@@ -207,7 +227,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_true = label(name = ast_node.value)
     
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    Compare(arg1,0)
+    Compare(arg1,add1,'0','')
     Jump(E_next, "je")
     
     data = data + str(E_true) + '\n'
@@ -224,7 +244,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_false = label(name = ast_node.value)
 
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    Compare(arg1,0)
+    Compare(arg1,add1,'0','')
     Jump(E_false,"je")
     
     data = data + str(E_true) + '\n'
@@ -245,7 +265,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     data = data + str(E_begin) + '\n'
     
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    Compare(arg1,0)
+    Compare(arg1,add1,'0','')
     Jump(E_next,"je")
     
     traverse_tree(ast_node.children[1], E_begin ,E_next)
@@ -268,7 +288,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     data = data + str(E_begin) + '\n'
 
     arg1,add1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    Compare(arg1,0)
+    Compare(arg1,add1,'0','')
     Jump(E_next,"je")
 
     traverse_tree(ast_node.children[3], E_end ,E_next)

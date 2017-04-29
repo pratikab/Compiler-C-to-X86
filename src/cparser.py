@@ -49,7 +49,7 @@ def add_node(p):
   return node
 
 def get_size(_type):
-  _dict = {'int':4,'float':8,'char':1,'BOOL':1,'unsigned int':4}
+  _dict = {'int':4,'float':8,'char':1,'BOOL':4,'unsigned int':4}
   if _type in _dict.keys():
     return _dict[_type]
   if '*' in _type:
