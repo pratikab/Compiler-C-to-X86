@@ -2,6 +2,10 @@
 import sys
 import cparser
 
+
+root, symbol_table = cparser.main()
+print symbol_table
+
 def get_offset_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == symbol_table:
@@ -14,8 +18,6 @@ def get_offset_symbole_table(variable,scope_name):
       else:
         return scope_name(variable,hash_table['parent_scope_name'])
 
-root, symbol_table = cparser.main()
-print symbol_table
 count_label = 0
 count_temp = 0
 code = ''
@@ -54,6 +56,7 @@ class Function_definition():
     self.name = name
   def __repr__(self):
     return self.name
+
 class BinOp():
   """docstring for BinOp"""
   def __init__(self,destination='',source_1='',operand='',source_2=''):
@@ -64,26 +67,6 @@ class BinOp():
   def __repr__(self):
     return self.destination + ' = ' + self.source_1 + self.operand + self.source_2
 
-class  LogicalOP(object):
-  """docstring for  LogicalOP"""
-  def __init__(self,source_1='',operand='',source_2=''):
-    self.source_1 = source_1
-    self.source_2 = source_2
-    self.operand = operand
-  def __repr__(self):
-    return 'if ' + self.source_1 + ' ' + self.operand + ' ' + self.source_2 + ' jmp'
-
-class ShiftOP(object):
-  """docstring for  ShiftOP"""
-  def __init__(self,destination, source_1='',operand='',source_2=''):
-    self.source_1 = source_1
-    self.source_2 = source_2
-    self.operand = operand
-    self.destination = destination
-  def __repr__(self):
-    return self.destination + ' = ' + self.source_1 + ' ' + self.operand + ' ' + self.source_2
-    
-
 def Jump(arg):
   global code
   code = code + '\tJMP ' + str(arg) + '\n'
@@ -93,9 +76,6 @@ def Compare(arg1, arg2):
 def PushParam(arg1):
   global code
   code = code + '\tPUSH ' + str(arg1)+ '\n'
-def PopParam(arg1):
-  global code
-  code = code + '\tPOP ' + str(arg1)+ '\n'
 def FuncCall(arg1):
   global code
   code = code + '\tCALL ' + str(arg1)+ '\n'
@@ -112,6 +92,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   arg = ''
   if ast_node.name == 'VarAccess':
     arg = ast_node.value
+    # pass
   elif ast_node.name == 'ConstantLiteral':
     arg = ast_node.value
   if ast_node.name == 'IF Statement':
@@ -192,10 +173,9 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Decl(ast_node.children[0].value)
   elif ast_node.name == 'VarDecl and Initialise':
     Decl(ast_node.children[0].value)
+    arg1= ''
     if ast_node.children[1] is not None: 
       arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[1].value
     arg3 = Assignment(ast_node.children[0].value,arg1)
     code = code +'\t' + str(arg3) +'\n'
 
@@ -222,8 +202,8 @@ def traverse_tree(ast_node, nextlist ,breaklist):
       for child in ast_node.children :
         if child is not None: 
           traverse_tree(child, nextlist ,breaklist)
-  elif ast_node.name == 'paramater':
-    PopParam(ast_node.value)
+  # elif ast_node.name == 'paramater':
+  #   PopParam(ast_node.value)
 
   elif ast_node.name == 'RETURN_EXPRESSION':
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
@@ -234,119 +214,37 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
   elif ast_node.name == 'Assignment':
     arg1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[1].value
     arg3 = BinOp(ast_node.children[0].value, arg1, '','')
     code = code +'\t' + str(arg3) +'\n'
 
-  elif ast_node.name == 'Multiplication':
+  elif ast_node.name in {'Addition','Logical AND','Logical OR','Multiplication','Modulus Operation','Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[0].value
     arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
     arg = str(newtemp())
     arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
-    code = code +'\t' + str(arg3) +'\n'
-
-  elif ast_node.name == 'Modulus Operation':
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
-    arg = str(newtemp())
-    arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
-    code = code +'\t' + str(arg3) +'\n'
-
-  elif ast_node.name == 'Addition':
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
-    arg = str(newtemp())
-    arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
-    code = code +'\t' + str(arg3) +'\n'
-
-  elif ast_node.name == 'Shift':
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
-    arg = str(newtemp())
-    arg3 = ShiftOP(str(arg) ,str(arg1) , ast_node.children[2].value, str(arg2))
-    code = code +'\t' + str(arg3) +'\n'
-
-  elif ast_node.name == 'Relation':
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
-    arg = newtemp()
-    arg3 = BinOp(str(arg), ast_node.children[0].value, ast_node.children[2].value, arg2)
     code = code +'\t' + str(arg3) +'\n'
 
   elif ast_node.name == 'UnaryOperator':
     arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[0].value
     arg3 = ''
     if(ast_node.children[1].value == '++'):
       arg3 = BinOp(str(arg1),str(arg1), '+',str(1))
     else: 
       arg3 = BinOp(str(arg1),str(arg1), '-',str(1))
     code = code +'\t' + str(arg3) +'\n'
-
-  elif ast_node.name == 'EqualityExpression':
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
-    arg = newtemp()
-    arg3 = BinOp(str(arg), ast_node.children[0].value, ast_node.children[2].value, arg2)
-    code = code +'\t' + str(arg3) +'\n'
-
-  elif ast_node.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
-    arg = str(newtemp())
-    arg3 = ShiftOP(str(arg) ,str(arg1) , ast_node.children[2].value, str(arg2))
-    code = code +'\t' + str(arg3) +'\n'
-
-  elif ast_node.name in {'Logical AND','Logical OR'}:
-    arg1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    if arg1 == '':
-      arg1 = ast_node.children[0].value
-    arg2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-    if arg2 == '':
-      arg2 = ast_node.children[1].value
-    arg = str(newtemp())
-    arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
-    code = code +'\t' + str(arg3) +'\n'
-
+    
   # elif ast_node.name == 'ArrayAccess':
 
   # elif ast_node.name == 'ArrayDeclaration':
 
   # elif ast_node.name == 'InitializerList':
 
-  # elif ast_node.name == 'RETURN_EXPRESSION':
-
-  # elif ast_node.name == 'Ternary Operation':
-
   # elif ast_node.name == 'StructReference':
 
   # elif ast_node.name == 'Pointer Dereference':
 
-  # elif ast_node.name == 'Address Of Operationx':
+  elif ast_node.name == 'Address Of Operation':
+    arg = ast_node.children[0].value
   else:
     if len(ast_node.children) > 0 :
       for child in ast_node.children :

@@ -940,7 +940,6 @@ def p_direct_declarator_5(p):
 def p_direct_declarator_6(p):
   '''direct_declarator  : direct_declarator '(' identifier_list ')'
                         '''
-  print "********"
   p[0] = ast_node('Function Arguments',value = p[1].value,type ='',children = [p[1],p[3]], lineno = p[1].lineno)
 def p_pointer(p):
   '''pointer  : '*'
@@ -1323,10 +1322,10 @@ def main():
     print ('Parsed successfully.......')
     start.traverse_tree()
     print ('Compiled successfully.......')
-    start.print_tree(0)
-    print ('Writing graph to' + fd_2)
-    graph.write_png(fd_2)
-    print ('Write successful')
+    # start.print_tree(0)
+    # print ('Writing graph to' + fd_2)
+    # # graph.write_png(fd_2)
+    # print ('Write successful')
     full_symbol_table[0] = symbol_table + full_symbol_table[0]
     return start, full_symbol_table
   else :
