@@ -393,9 +393,13 @@ class ast_node(object):
     if self.name == 'Address Of Operation':
       self.type = fetch_type_from_symbol_table(self.children[0])+' *'
 
+    if self.name == 'FuncCall':
+      self.type = symbol_table[0][self.value][0]
+
     if self.name == 'FuncCallwithArgs':
       target_argumets = symbol_table[0][self.value][5]
-      if self.children[1].children != []:
+      self.type = symbol_table[0][self.value][0]
+      if len(self.children[1].children) > 1:
         for index,param in enumerate(self.children[1].children):
           if param.type != target_argumets[index][1]:
             print 'lineno',self.lineno,'-COMPILATION TERMINATED Type checking failed in FuncCallwithArgs : ', self.value
