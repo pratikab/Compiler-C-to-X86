@@ -437,7 +437,14 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     else: 
       arg3 = BinOp(str(arg1),str(arg1), '-',str(1))
     code = code +'\t' + str(arg3) +'\n'
-    
+  elif ast_node.name == 'Unary Minus':
+    arg1,add2 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+    set_address_symbol_table(arg, 's0',address)
+    offset =offset+int(cparser.get_size(ast_node.type))
+    code = code +'\t' + str(arg) + '= (-'+str(arg1)+')' +'\n'
   elif ast_node.name == 'ArrayAccess':
     # print ast_node.value, ast_node.scope_name,ast_node.type
     arr = get_array_symbol_table(ast_node.value,ast_node.scope_name)

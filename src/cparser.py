@@ -392,7 +392,8 @@ class ast_node(object):
 
     if self.name == 'Pointer Dereference':
       self.type = fetch_type_from_symbol_table(self.children[0]).split(' ')[0]
-
+    if self.name == 'Unary Minus':
+      self.type = fetch_type_from_symbol_table(self.children[0])
     if self.name == 'Address Of Operation':
       self.type = fetch_type_from_symbol_table(self.children[0])+' *'
 
@@ -559,6 +560,8 @@ def p_unary_expression_2(p):
     p[0] = ast_node('Pointer Dereference',value = p[2].value, type = p[2].type, children =[p[2]], lineno = p.lineno(1))
   elif p[1] == '&':
     p[0] = ast_node('Address Of Operation',value = p[2].value, type = p[2].type, children =[p[2]], lineno = p.lineno(1))
+  elif p[1] == '-':
+    p[0] = ast_node('Unary Minus',value = p[2].value, type = p[2].type, children =[p[2]], lineno = p.lineno(1))
   else:
     p[0] = ast_node('Unary Operator',value = p[2].value, type = p[2].type, children =[p[2]], lineno = p.lineno(1))    
 

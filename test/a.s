@@ -35,70 +35,30 @@ exit:
 	pop ebp
 	ret
 
+test:
+	push ebp
+	mov ebp, esp
+	sub esp, 0
+	mov eax, 0
+	add esp, 0
+	pop ebp
+	ret
+	add esp, 0
+	pop ebp
+	ret
 main:
 	push ebp
 	mov ebp, esp
-	sub esp, 92
-	mov ecx, 1
-	mov [ebp-48], ecx
-	mov eax, 1
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-52], eax
-	mov eax, [ebp-52]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-56], eax
-	mov edx, ebp
-	sub edx, 40
-	add edx, [ebp-56]
-	mov [ebp-60], edx
-	mov eax, [ebp-60]
-	mov ecx, 2
-	mov [eax], ecx
-	mov eax, 2
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-64], eax
-	mov eax, [ebp-64]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-68], eax
-	mov edx, ebp
-	sub edx, 40
-	add edx, [ebp-68]
-	mov [ebp-72], edx
-	mov eax, [ebp-72]
-	mov ecx, 3
-	mov [eax], ecx
-	mov eax, 1
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-76], eax
-	mov eax, [ebp-76]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-80], eax
-	mov edx, ebp
-	sub edx, 40
-	add edx, [ebp-80]
-	mov [ebp-84], edx
-	mov eax, [ebp-84]
-	mov eax, [eax]
-	mov ecx, 5
-	add eax, ecx
-	mov [ebp-88], eax
-	mov ecx, [ebp-88]
-	mov [ebp-44], ecx
-	mov eax, [ebp-44]
+	sub esp, 28
+	mov eax, [ebp-20]
 	push eax
-	call printInt
+	call test
 	pop edx
-	mov [ebp-92], eax
+	mov [ebp-28], eax
 	mov eax, 0
-	add esp, 92
+	add esp, 28
 	pop ebp
 	ret
-	add esp, 92
+	add esp, 28
 	pop ebp
 	ret

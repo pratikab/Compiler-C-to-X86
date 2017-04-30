@@ -493,8 +493,24 @@ def traverse_tree(ast_node, nextlist ,breaklist):
       BinOp(add,str(arg1),add1, '+',str(1),'')
     elif ast_node.children[1].value == '--': 
       BinOp(add,str(arg1),add1, '-',str(1),'')
-    Assignment(str(arg1), add1, str(arg), add)   
+    Assignment(str(arg1), add1, str(arg), add) 
 
+  elif ast_node.name == 'Unary Minus':
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg = str(newtemp())
+    add = get_offset_symbol_table(arg,'s0')
+    a1 = '-' + arg1
+    print a1
+    if add1 != '':
+      a1 = add1
+    if a1.startswith("array"):
+      k = a1.split(" ")[1]
+      data = data + '\tmov eax, '+k+'\n'
+      data = data + '\tmov eax, [eax]\n'
+    else:
+      data = data + '\tmov eax, ' + str(a1)+'\n'
+    data = data + '\tneg eax\n'
+    data = data + '\tmov '+add+', eax\n'
 
   elif ast_node.name == 'ArrayAccess':
     
