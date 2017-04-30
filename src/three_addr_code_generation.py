@@ -310,7 +310,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     t = get_parsize_symbole_table(ast_node.value, ast_node.scope_name)
     arg_list = get_parlist_symbole_table(ast_node.value, ast_node.scope_name)
     j = 8
-    for i in arg_list[::-1]:
+    for i in arg_list:
       address = '[ebp+'+str(j)+']'
       value = i[0]
       size = i[2]

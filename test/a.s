@@ -38,13 +38,9 @@ exit:
 test:
 	push ebp
 	mov ebp, esp
-	sub esp, 4
-	mov ebx, [ebp+12]
-	mov ecx, [ebp+8]
-	add ebx, ecx
-	mov [ebp-4], ebx
-	mov eax, [ebp-4]
-	add esp, 4
+	sub esp, 0
+	mov eax, [ebp+8]
+	add esp, 0
 	pop ebp
 	ret
 main:
