@@ -3,10 +3,12 @@ import sys
 import cparser
 
 root, symbol_table = cparser.main()
-# print symbol_table
-# for temp in symbol_table:
-#   print temp
-def get_argc_symbole_table(variable,scope_name):
+print symbol_table
+for temp in symbol_table:
+  for key in temp:
+    print key, len(temp[key])
+  print temp
+def get_argc_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -15,9 +17,9 @@ def get_argc_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+        return get_argc_symbol_table(variable,hash_table['parent_scope_name'])
 
-def get_size_symbole_table(variable,scope_name):
+def get_size_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -26,10 +28,10 @@ def get_size_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+        return get_size_symbol_table(variable,hash_table['parent_scope_name'])
 
 
-def get_offset_symbole_table(variable,scope_name):
+def get_offset_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -40,8 +42,8 @@ def get_offset_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
-def get_parsize_symbole_table(variable,scope_name):
+        return get_offset_symbol_table(variable,hash_table['parent_scope_name'])
+def get_parsize_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -50,8 +52,8 @@ def get_parsize_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
-def get_parlist_symbole_table(variable,scope_name):
+        return get_parsize_symbol_table(variable,hash_table['parent_scope_name'])
+def get_parlist_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -60,8 +62,8 @@ def get_parlist_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
-def get_array_symbole_table(variable,scope_name):
+        return get_parlist_symbol_table(variable,hash_table['parent_scope_name'])
+def get_array_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -70,8 +72,8 @@ def get_array_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
-def set_address_symbole_table(variable,scope_name,address):
+        return get_array_symbol_table(variable,hash_table['parent_scope_name'])
+def set_address_symbol_table(variable,scope_name,address):
   for index,hash_table in enumerate(symbol_table):
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -81,7 +83,7 @@ def set_address_symbole_table(variable,scope_name,address):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        set_address_symbole_table(variable,hash_table['parent_scope_name'],address)
+        set_address_symbol_table(variable,hash_table['parent_scope_name'],address)
 
 count_label = 0
 count_temp = 0
@@ -150,8 +152,8 @@ def PushParam(arg1,add1):
 
 def FuncCall(arg1,arg2):
   global code
-  k = int(get_argc_symbole_table(str(arg1.value),'s0'))
-  # print "+++",get_argc_symbole_table(str(arg1.value),'s0')
+  k = int(get_argc_symbol_table(str(arg1.value),'s0'))
+  # print "+++",get_argc_symbol_table(str(arg1.value),'s0')
   code = code + '\tCALL ' + str(arg1.value)+ '\n'
   code = code + '\t'+arg2+' = Ret Value'+'\n'
 
@@ -160,9 +162,9 @@ def Decl(arg1):
   global code
   arg2 = arg1.children[0]
   p = arg2.value
-  temp = str(get_size_symbole_table(arg2.value, arg1.scope_name))
+  temp = str(get_size_symbol_table(arg2.value, arg1.scope_name))
   address = "[ebp-"+str(offset+int(temp))+"]"
-  set_address_symbole_table(arg2.value, arg1.scope_name,address)
+  set_address_symbol_table(arg2.value, arg1.scope_name,address)
   offset =offset+int(temp)
   code = code + '\tDecl ' + str(p)+' '+temp+ '\n'
   return address
@@ -188,7 +190,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   add = ''
   if ast_node.name == 'VarAccess':
     arg = ast_node.value
-    add = get_offset_symbole_table(ast_node.value,ast_node.scope_name)
+    add = get_offset_symbol_table(ast_node.value,ast_node.scope_name)
     # pass
   elif ast_node.name == 'ConstantLiteral':
     arg = ast_node.value
@@ -292,7 +294,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg = str(newtemp())
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg, 's0',address)
+    set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
 
     FuncCall(ast_node.children[0],str(arg))
@@ -301,7 +303,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg = str(newtemp())
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg, 's0',address)
+    set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
 
 
@@ -314,23 +316,23 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'Function_definition':
     offset = 0
     arg1 = label(name = ast_node.value) 
-    temp = str(get_size_symbole_table(ast_node.value, ast_node.scope_name))
-    t = get_parsize_symbole_table(ast_node.value, ast_node.scope_name)
-    arg_list = get_parlist_symbole_table(ast_node.value, ast_node.scope_name)
+    temp = str(get_size_symbol_table(ast_node.value, ast_node.scope_name))
+    t = get_parsize_symbol_table(ast_node.value, ast_node.scope_name)
+    arg_list = get_parlist_symbol_table(ast_node.value, ast_node.scope_name)
     j = 8
     for i in arg_list:
       address = '[ebp+'+str(j)+']'
       value = i[0]
       size = i[2]
       scope_name = i[3]
-      set_address_symbole_table(value, scope_name, address)
+      set_address_symbol_table(value, scope_name, address)
       j = j + size
 
 
     code = code + str(arg1) + ' ' + temp + '\n'
 
-    # set_address_symbole_table(ast_node.value, ast_node.scope_name, 50)
-    # print get_offset_symbole_table(ast_node.value, ast_node.scope_name)
+    # set_address_symbol_table(ast_node.value, ast_node.scope_name, 50)
+    # print get_offset_symbol_table(ast_node.value, ast_node.scope_name)
 
     BeginFunc()
     if len(ast_node.children) > 0 :
@@ -366,7 +368,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
  
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg, 's0',address)
+    set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
 
     arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
@@ -379,7 +381,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg = str(newtemp())
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg, 's0',address)
+    set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
 
     E_next = label(name = ast_node.value)
@@ -402,7 +404,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg = str(newtemp())
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg, 's0',address)
+    set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
 
     E_next = label(name = ast_node.value)
@@ -428,7 +430,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
  
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg, 's0',address)
+    set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
     if(ast_node.children[1].value == '++'):
       arg3 = BinOp(str(arg1),str(arg1), '+',str(1))
@@ -438,13 +440,15 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     
   elif ast_node.name == 'ArrayAccess':
     # print ast_node.value, ast_node.scope_name,ast_node.type
-    arr = get_array_symbole_table(ast_node.value,ast_node.scope_name)
-    # print arr
+    arr = get_array_symbol_table(ast_node.value,ast_node.scope_name)
     index = []
     mul_size = []
     for i in range (1,len(arr)):
       t = 1
       for j in range(i,len(arr)):
+        # print symbol_table
+        print ast_node.value, arr, ast_node.scope_name
+        print type(arr[j]), arr[j]
         t = t * arr[j]
       mul_size.append(t)
     mul_size.append(1)
@@ -458,13 +462,12 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     j = 0
     lis = []
     for i in index:
-      # print get_offset_symbole_table(i.value,i.scope_name)
+      # print get_offset_symbol_table(i.value,i.scope_name)
       # print i.value
       arg1 = str(newtemp())
-      print arg1
       symbol_table[0][arg1] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
       address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-      set_address_symbole_table(arg1, 's0',address)
+      set_address_symbol_table(arg1, 's0',address)
       offset =offset+int(cparser.get_size(ast_node.type))
       arg3 = BinOp(str(arg1),str(i.value), '*',str(mul_size[j]))
       code = code +'\t' + str(arg3) +'\n'
@@ -475,7 +478,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
       arg1 = str(newtemp())
       symbol_table[0][arg1] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
       address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-      set_address_symbole_table(arg1, 's0',address)
+      set_address_symbol_table(arg1, 's0',address)
       offset =offset+int(cparser.get_size(ast_node.type))
       arg3 = BinOp(str(arg1),str(arg2), '+',str(lis[i]))
       code = code +'\t' + str(arg3) +'\n'
@@ -484,7 +487,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg1 = str(newtemp())
     symbol_table[0][arg1] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg1, 's0',address)
+    set_address_symbol_table(arg1, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
     arg3 = BinOp(str(arg1),str(arg2), '*',str(p))
     code = code +'\t' + str(arg3) +'\n'
@@ -493,13 +496,11 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg1 = str(newtemp())
     symbol_table[0][arg1] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-    set_address_symbole_table(arg1, 's0',address)
+    set_address_symbol_table(arg1, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
     arg3 = BinOp(str(arg1),str(arg2), '+','*'+ast_node.value)
     code = code +'\t' + str(arg3) +'\n'
 
-
-    print arg1
     arg = arg1
   # elif ast_node.name == 'StructReference':
 

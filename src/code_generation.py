@@ -12,7 +12,7 @@ root, symbol_table = three_addr_code_generation.main()
 for temp in symbol_table:
   print temp, '\n'
 
-def get_argc_symbole_table(variable,scope_name):
+def get_argc_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -21,9 +21,9 @@ def get_argc_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+        return get_argc_symbol_table(variable,hash_table['parent_scope_name'])
 
-def get_allo_symbole_table(variable,scope_name):
+def get_allo_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -33,10 +33,10 @@ def get_allo_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+        return get_allo_symbol_table(variable,hash_table['parent_scope_name'])
 
 
-def get_offset_symbole_table(variable,scope_name):
+def get_offset_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -47,9 +47,9 @@ def get_offset_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+        return get_offset_symbol_table(variable,hash_table['parent_scope_name'])
 
-def set_address_symbole_table(variable,scope_name,address):
+def set_address_symbol_table(variable,scope_name,address):
   for index,hash_table in enumerate(symbol_table):
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -59,8 +59,8 @@ def set_address_symbole_table(variable,scope_name,address):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        set_address_symbole_table(variable,hash_table['parent_scope_name'],address)
-def get_array_symbole_table(variable,scope_name):
+        set_address_symbol_table(variable,hash_table['parent_scope_name'],address)
+def get_array_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
       if variable in hash_table.keys():
@@ -69,7 +69,7 @@ def get_array_symbole_table(variable,scope_name):
         print 'Variable not found in symbol table exiting'
         sys.exit()
       else:
-        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+        return get_array_symbol_table(variable,hash_table['parent_scope_name'])
 count_label = 0
 count_temp = 0
 data = ''
@@ -244,16 +244,23 @@ def Compare(arg1,add1,arg2,add2):
 
 def PushParam(arg1,add1):
   global data
-  if add1 == '':
-    data = data + '\tmov eax, '+str(arg1)+'\n'
+  a1 = arg1
+
+  if add1 != '':
+      a1 = add1
+  if a1.startswith("array"):
+    k = a1.split(" ")[1]
+    data = data + '\tmov eax, '+k+'\n'
+    data = data + '\tmov eax, [eax]\n'
   else:
-    data = data + '\tmov eax, '+add1+'\n'
+    data = data + '\tmov eax, ' + str(a1)+'\n'
+
   data = data + '\tpush eax'+'\n'
 
 def FuncCall(arg1,add1):
   global data
-  k = int(get_argc_symbole_table(str(arg1.value),'s0'))
-  # print "+++",get_argc_symbole_table(str(arg1.value),'s0')
+  k = int(get_argc_symbol_table(str(arg1.value),'s0'))
+  # print "+++",get_argc_symbol_table(str(arg1.value),'s0')
   data = data + '\tcall ' + str(arg1.value) + '\n'
   for i in range(0,k):
     data = data + '\tpop edx'+'\n'
@@ -283,7 +290,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   add = ''
   if ast_node.name == 'VarAccess':
     arg = ast_node.value
-    add = get_offset_symbole_table(ast_node.value,ast_node.scope_name)
+    add = get_offset_symbol_table(ast_node.value,ast_node.scope_name)
     # pass
   elif ast_node.name == 'ConstantLiteral':
     arg = ast_node.value
@@ -366,7 +373,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     data = data + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl and Initialise':
-    add2 = get_offset_symbole_table(ast_node.children[0].value,ast_node.scope_name)
+    add2 = get_offset_symbol_table(ast_node.children[0].value,ast_node.scope_name)
     arg1= ''
     add1= ''
     if ast_node.children[1] is not None: 
@@ -383,7 +390,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'FuncCall':
     
     arg = str(newtemp())
-    add = get_offset_symbole_table(arg,'s0')
+    add = get_offset_symbol_table(arg,'s0')
     FuncCall(ast_node.children[0],add)
 
   elif ast_node.name == 'FuncCallwithArgs':
@@ -392,11 +399,11 @@ def traverse_tree(ast_node, nextlist ,breaklist):
         traverse_tree(child, nextlist ,breaklist)
 
     arg = str(newtemp())
-    add = get_offset_symbole_table(arg,'s0')
+    add = get_offset_symbol_table(arg,'s0')
     FuncCall(ast_node.children[0],add)
 
   elif ast_node.name == 'Function_definition':
-    offset = get_allo_symbole_table(ast_node.value,'s0')
+    offset = get_allo_symbol_table(ast_node.value,'s0')
     arg1 = label(name = ast_node.value) 
 
     data = data + str(arg1) + '\n'
@@ -427,7 +434,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     arg = str(newtemp())
-    add = get_offset_symbole_table(arg,'s0')
+    add = get_offset_symbol_table(arg,'s0')
     BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
 
   elif ast_node.name == 'Logical AND':
@@ -435,7 +442,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
 
     arg = str(newtemp())
-    add = get_offset_symbole_table(arg,'s0')
+    add = get_offset_symbol_table(arg,'s0')
 
     E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
@@ -458,7 +465,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
 
     arg = str(newtemp())
-    add = get_offset_symbole_table(arg,'s0')
+    add = get_offset_symbol_table(arg,'s0')
 
     E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
@@ -481,7 +488,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'UnaryOperator':
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg = str(newtemp())
-    add = get_offset_symbole_table(arg,'s0')
+    add = get_offset_symbol_table(arg,'s0')
     if ast_node.children[1].value == '++':
       BinOp(add,str(arg1),add1, '+',str(1),'')
     elif ast_node.children[1].value == '--': 
@@ -491,7 +498,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
   elif ast_node.name == 'ArrayAccess':
     
-    arr = get_array_symbole_table(ast_node.value,ast_node.scope_name)
+    arr = get_array_symbol_table(ast_node.value,ast_node.scope_name)
     # print arr
     index = []
     mul_size = []
@@ -513,8 +520,8 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     for i in index:
       # print i.value
       arg1 = str(newtemp())
-      add1 = get_offset_symbole_table(arg1,'s0')
-      add2 = get_offset_symbole_table(i.value,i.scope_name)
+      add1 = get_offset_symbol_table(arg1,'s0')
+      add2 = get_offset_symbol_table(i.value,i.scope_name)
       if add2 == None:
         add2 = ''
       BinOp(add1,str(i.value),add2, '*',str(mul_size[j]),'')
@@ -523,14 +530,14 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg2 = lis[0]
     for i in range (1,len(index)):
       arg1 = str(newtemp())
-      add1 = get_offset_symbole_table(arg1,'s0')
+      add1 = get_offset_symbol_table(arg1,'s0')
       BinOp(add1,'',arg2, '+','',lis[i])
       arg2 = add1
     p = cparser.get_size(ast_node.type)
     arg1 = str(newtemp())
-    add1 = get_offset_symbole_table(arg1,'s0')
+    add1 = get_offset_symbol_table(arg1,'s0')
     BinOp(add1,'',arg2, '*',str(p),'')
-    f = get_offset_symbole_table(ast_node.value,ast_node.scope_name)
+    f = get_offset_symbol_table(ast_node.value,ast_node.scope_name)
     f = f.split('-')[1].split(']')[0]
     print f,add1
     data = data + '\tmov edx, ebp\n'
@@ -538,7 +545,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     data = data + '\tadd edx, '+add1+ '\n'
 
     arg1 = str(newtemp())
-    add1 = get_offset_symbole_table(arg1,'s0')
+    add1 = get_offset_symbol_table(arg1,'s0')
 
     data = data + '\tmov '+add1+', edx\n'
     add = "array "+ add1
