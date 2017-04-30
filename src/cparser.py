@@ -340,6 +340,8 @@ class ast_node(object):
         sys.exit()
 
     if self.name == 'ArrayAccess':
+      self.scope_name = current_scope_name
+      self.type = fetch_type_from_symbol_table(self)
       if fetch_type_from_symbol_table(self.children[1]) not in ['int','unsigned int']: 
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: error in logical ArrayAccess'
         sys.exit()
@@ -398,7 +400,6 @@ class ast_node(object):
       self.type = symbol_table[0][self.value][0]
 
     if self.name == 'FuncCallwithArgs':
-      print self.value
       target_argumets = symbol_table[0][self.value][5]
       self.type = symbol_table[0][self.value][0]
       if len(self.children[1].children) > 1:

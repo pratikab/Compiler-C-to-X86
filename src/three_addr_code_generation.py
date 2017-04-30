@@ -61,7 +61,16 @@ def get_parlist_symbole_table(variable,scope_name):
         sys.exit()
       else:
         return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
-
+def get_array_symbole_table(variable,scope_name):
+  for hash_table in symbol_table:
+    if hash_table['scope_name'] == scope_name:
+      if variable in hash_table.keys():
+        return hash_table[variable][7]
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+      else:
+        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
 def set_address_symbole_table(variable,scope_name,address):
   for index,hash_table in enumerate(symbol_table):
     if hash_table['scope_name'] == scope_name:
@@ -289,7 +298,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     FuncCall(ast_node.children[0],str(arg))
 
   elif ast_node.name == 'FuncCallwithArgs':
-    print ast_node.type
     arg = str(newtemp())
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
@@ -427,12 +435,48 @@ def traverse_tree(ast_node, nextlist ,breaklist):
       arg3 = BinOp(str(arg1),str(arg1), '-',str(1))
     code = code +'\t' + str(arg3) +'\n'
     
-  # elif ast_node.name == 'ArrayAccess':
-
-  # elif ast_node.name == 'ArrayDeclaration':
-
-  # elif ast_node.name == 'InitializerList':
-
+  elif ast_node.name == 'ArrayAccess':
+    print ast_node.value, ast_node.scope_name,ast_node.type
+    arr = get_array_symbole_table(ast_node.value,ast_node.scope_name)
+    print arr
+    index = []
+    mul_size = []
+    for i in range (1,len(arr)):
+      t = 1
+      for j in range(i,len(arr)):
+        t = t * arr[j]
+      mul_size.append(t)
+    mul_size.append(0)
+    print mul_size
+    for i in range (0,len(arr)):
+      k = ast_node
+      for j in range (0,i):
+        k = k.children[0]
+      index.append(k.children[1])
+    index = index[::-1]
+    j = 0
+    lis = []
+    for i in index:
+      print i.value
+      arg1 = str(newtemp())
+      symbol_table[0][arg1] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+      address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+      set_address_symbole_table(arg1, 's0',address)
+      offset =offset+int(cparser.get_size(ast_node.type))
+      arg3 = BinOp(str(arg1),str(i.value), '*',str(mul_size[j]))
+      code = code +'\t' + str(arg3) +'\n'
+      lis.append(arg1)
+      j = j+1
+    arg2 = lis[0]
+    for i in range (1,len(index)):
+      arg1 = str(newtemp())
+      symbol_table[0][arg1] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+      address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+      set_address_symbole_table(arg1, 's0',address)
+      offset =offset+int(cparser.get_size(ast_node.type))
+      arg3 = BinOp(str(arg1),str(arg2), '+',str(lis[i]))
+      code = code +'\t' + str(arg3) +'\n'
+      arg2 = arg1
   # elif ast_node.name == 'StructReference':
 
   # elif ast_node.name == 'Pointer Dereference':

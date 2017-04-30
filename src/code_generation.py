@@ -271,12 +271,6 @@ def Ret(arg1, add1,offset):
     data = data + '\tmov eax, '+ add1+'\n'
   EndFunc(offset)
 
-
-
-
-
-
-
 offset = 0;
 def traverse_tree(ast_node, nextlist ,breaklist):
   global data,offset
