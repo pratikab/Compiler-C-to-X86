@@ -253,31 +253,33 @@ def FuncCall(arg1,add1):
   for i in range(0,k):
     data = data + '\tpop edx'+'\n'
   data = data + '\tmov '+add1+ ', eax\n'
-
-def Ret(arg1, add1):
-  global data
-  if add1 == '':
-    data = data + '\tmov eax, '+ arg1+'\n'
-  else:
-    data = data + '\tmov eax, '+ add1+'\n'
-
-
 def BeginFunc(offset):
   global data
   data = data + '\tpush ebp'+'\n'
   data = data + '\tmov ebp, esp'+'\n'
   data = data + '\tsub esp, '+ str(offset)+'\n'
-
 def EndFunc(offset):
   global data
   data = data + '\tadd esp, '+ str(offset)+'\n'
   data = data + '\tpop ebp'+'\n'
   data = data + '\tret'+'\n'
-
-
-
-def traverse_tree(ast_node, nextlist ,breaklist):
+def Ret(arg1, add1,offset):
   global data
+  if add1 == '':
+    data = data + '\tmov eax, '+ arg1+'\n'
+  else:
+    data = data + '\tmov eax, '+ add1+'\n'
+  EndFunc(offset)
+
+
+
+
+
+
+
+offset = 0;
+def traverse_tree(ast_node, nextlist ,breaklist):
+  global data,offset
   arg = ''
   add = ''
   if ast_node.name == 'VarAccess':
@@ -410,9 +412,9 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
   elif ast_node.name == 'RETURN_EXPRESSION':
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    Ret(arg1,add1)
+    Ret(arg1,add1,offset)
   elif ast_node.name == 'RETURN':
-    Ret(0, '')
+    Ret(0, '',offset)
 
   elif ast_node.name == 'Assignment':
     add2 = get_offset_symbole_table(ast_node.children[0].value,ast_node.children[0].scope_name)
