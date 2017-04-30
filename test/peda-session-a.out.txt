@@ -1,3 +1,2 @@
-break fibonacci
-
+break main
 
