@@ -105,6 +105,7 @@ class Assignment():
     
     if sourceadd.startswith('array'):
       k = sourceadd.split(" ")[1]
+      print k, sourceadd , '\n'*10
       data = data + '\tmov eax, '+k+'\n'   
     if destinationadd != '':
       if destinationadd.startswith("array"):
@@ -278,7 +279,7 @@ def EndFunc(offset):
 def Ret(arg1, add1,offset):
   global data
   if add1 == '':
-    data = data + '\tmov eax, '+ arg1+'\n'
+    data = data + '\tmov eax, '+ str(arg1)+'\n'
   else:
     data = data + '\tmov eax, '+ add1+'\n'
   EndFunc(offset)

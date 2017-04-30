@@ -1,4 +1,3 @@
-#include <stdio.h>
 int ackermann(int x, int y)
 {
 	if(x<0 || y<0)
@@ -17,7 +16,5 @@ int main(int argc, char **argv)
 	y=2;
 	int temp;
 	temp = ackermann(x,y);
-	//printInt(temp);
-	printf("%d\n",temp);
-	return 0;
+	printInt(temp);
 }

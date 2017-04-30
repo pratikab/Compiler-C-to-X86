@@ -302,6 +302,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'FuncCallwithArgs':
     arg = str(newtemp())
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+    print ast_node.type
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
     set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))

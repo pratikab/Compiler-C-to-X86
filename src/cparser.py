@@ -159,6 +159,7 @@ class ast_node(object):
         # print self.children[0].value, self.children[0].children[1].children[0].value
         for param in self.children[0].children[1].children:
           param_list.append([param.value,param.type,get_size(param.type),current_scope_name])
+          print param.type;
           total_param_size = total_param_size + get_size(param.type)
       symbol_table[0][self.value].append(param_list)
       symbol_table[0][self.value].append(total_param_size)
