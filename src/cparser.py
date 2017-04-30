@@ -13,7 +13,8 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Struct Address Dereference
 
 # Symbol Table is a list of hash tables
-# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not',line_no,struct_scope,size,offset]
+# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not',line_no,struct_scope,size,function_parameter_list,
+#                                                                   function_parameter_size,array_index_list,address]
 # It also has the attributes symbol_stable[scope_level]['parent_scope_name'] = 'name of parent scope', 
 # symbol_stable[scope_level]['scope_name'] = 'current score name'
 symbol_table = []
@@ -27,8 +28,8 @@ current_struct = ''
 is_func_temp = False
 # Checks if the 'Compound Statement' is associated with a function or not
 current_function_used = False
-symbol_table[0]['printInt'] = ['int', 'Function 1', -1, {}, 4]
-symbol_table[0]['printString'] = ['int', 'Function 1', -1, {}, 4]
+symbol_table[0]['printInt'] = ['int', 'Function 1', -1, {}, 4,[],-1,[]]
+symbol_table[0]['printString'] = ['int', 'Function 1', -1, {}, 4,[],-1,[]]
 def add_edge(node_parent,node_child):
   graph.add_edge(pydot.Edge(node_parent, node_child))
 
@@ -106,7 +107,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'',self.lineno,{},get_size(self.type)]
+        symbol_table[scope_level][self.value.split('=')[0]] = [self.type,'',self.lineno,{},get_size(self.type),[],-1,[]]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value.split('=')[0] + ' declared void'
           sys.exit()
@@ -116,7 +117,7 @@ class ast_node(object):
         print self.lineno, 'COMPILATION ERROR : Variable in Struct ' + self.value.split('=')[0] + ' already declared'
         sys.exit()
       else:
-        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{},get_size(self.type)]
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{},get_size(self.type),[],-1,[]]
         if self.type == 'void' and scope_level != 0:
           print self.lineno, 'COMPILATION ERROR : Variable ' + self.value + ' declared void'
           sys.exit()
@@ -135,11 +136,23 @@ class ast_node(object):
         sys.exit()
       else:
         # symbol_table[scope_level - 1][self.value][0] = p[2].type    Correct version todo : try to use p[2].type
-        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{},get_size(self.type)]
+        symbol_table[scope_level][self.value] = [self.type,'',self.lineno,{},get_size(self.type),[],-1,[]]
 
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
       symbol_table[scope_level][self.value] = [self.type, 'Function'+' '+str(self.arg_count),self.lineno,{},get_size(self.type)]
+      param_list = []
+      total_param_size = 0
+      if self.children[0].children != []:
+        # print self.children[0].value, self.children[0].children[1].children[0].value
+        for param in self.children[0].children[1].children:
+          param_list.append([param.value,param.type,get_size(param.type)])
+          total_param_size = total_param_size + get_size(param.type)
+          print param_list, total_param_size
+      symbol_table[scope_level][self.value].append(param_list)
+      symbol_table[scope_level][self.value].append(total_param_size)
+      symbol_table[scope_level][self.value].append([])
+
       self.scope_name = current_scope_name
       scope_level = scope_level + 1
       self.scope_name = current_scope_name
@@ -335,8 +348,15 @@ class ast_node(object):
       if fetch_type_from_symbol_table(self.children[0]) not in ['int','unsigned int']: 
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: error in logical ArrayDeclaration'
         sys.exit()
-      print self.arraylen,get_size(fetch_type_from_symbol_table(self.children[0]))
-      symbol_table[scope_level][self.value][4] = int(self.arraylen[0])*get_size(fetch_type_from_symbol_table(self.children[0]))
+      print self.arraylen,get_size(fetch_type_from_symbol_table(self))
+      total_size = 1*get_size(fetch_type_from_symbol_table(self))
+      array_index_list = []
+      for index in self.arraylen:
+        array_index_list.append(int(index))
+        total_size = total_size*int(index)
+      symbol_table[scope_level][self.value][4] = total_size
+      symbol_table[scope_level][self.value][7] = array_index_list
+      print symbol_table
 
     if self.name == 'InitializerList':
       for child in self.children:
@@ -1342,7 +1362,7 @@ def main():
     # print ('Parsed successfully.......')
     start.traverse_tree()
     print ('Compiled successfully.......')
-    # start.print_tree(0)
+    start.print_tree(0)
     # print ('Writing graph to' + fd_2)
     # graph.write_png(fd_2)
     # print ('Write successful')

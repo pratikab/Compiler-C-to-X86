@@ -36,7 +36,7 @@ def get_offset_symbole_table(variable,scope_name):
       if variable in hash_table.keys():
         if(hash_table[variable][1].startswith('Function')):
           return ''
-        return hash_table[variable][5]
+        return hash_table[variable][8]
       elif scope_name == 's0':
         print 'Variable not found in symbol table exiting'
         sys.exit()
@@ -308,7 +308,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     # for index,hash_table in enumerate(symbol_table):
     #   if hash_table['scope_name'] == 's0':
     arg = str(newtemp())
-    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
  
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
     set_address_symbole_table(arg, 's0',address)
@@ -322,7 +322,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
 
     arg = str(newtemp())
-    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
     set_address_symbole_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
@@ -345,7 +345,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
 
     arg = str(newtemp())
-    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
     set_address_symbole_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
@@ -370,7 +370,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg1,add2 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg3 = ''
     arg = str(newtemp())
-    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
  
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
     set_address_symbole_table(arg, 's0',address)

@@ -9,9 +9,9 @@ fout.write(data)
 
 root, symbol_table = three_addr_code_generation.main()
 
-# print symbol_table
-# for temp in symbol_table:
-#   print temp
+print symbol_table
+for temp in symbol_table:
+  print temp, '\n'
 
 def get_argc_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
@@ -43,7 +43,7 @@ def get_offset_symbole_table(variable,scope_name):
       if variable in hash_table.keys():
         if(hash_table[variable][1].startswith('Function')):
           return ''
-        return hash_table[variable][5]
+        return hash_table[variable][8]
       elif scope_name == 's0':
         print 'Variable not found in symbol table exiting'
         sys.exit()
