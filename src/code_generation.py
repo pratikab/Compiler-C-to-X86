@@ -263,8 +263,9 @@ def BeginFunc(offset):
   data = data + '\tmov ebp, esp'+'\n'
   data = data + '\tsub esp, '+ str(offset)+'\n'
 
-def EndFunc():
+def EndFunc(offset):
   global data
+  data = data + '\tadd esp, '+ str(offset)+'\n'
   data = data + '\tpop ebp'+'\n'
   data = data + '\tret'+'\n'
 
@@ -393,7 +394,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
       for child in ast_node.children :
         if child is not None: 
           traverse_tree(child, nextlist ,breaklist)
-    EndFunc()
+    EndFunc(offset)
   # elif ast_node.name == 'paramater':
   #   PopParam(ast_node.value)
 
