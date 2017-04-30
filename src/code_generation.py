@@ -9,7 +9,6 @@ fout.write(data)
 
 root, symbol_table = three_addr_code_generation.main()
 
-print symbol_table
 for temp in symbol_table:
   print temp, '\n'
 
@@ -246,16 +245,22 @@ def PushParam(arg1,add1):
     data = data + '\tmov eax, '+add1+'\n'
   data = data + '\tpush eax'+'\n'
 
-def FuncCall(arg1):
+def FuncCall(arg1,add1):
   global data
   k = int(get_argc_symbole_table(str(arg1.value),'s0'))
   # print "+++",get_argc_symbole_table(str(arg1.value),'s0')
   data = data + '\tcall ' + str(arg1.value) + '\n'
   for i in range(0,k):
     data = data + '\tpop edx'+'\n'
+  data = data + '\tmov '+add1+ ', eax\n'
 
-def Ret():
+def Ret(arg1, add1):
   global data
+  if add1 == '':
+    data = data + '\tmov eax, '+ arg1+'\n'
+  else:
+    data = data + '\tmov eax, '+ add1+'\n'
+
 
 def BeginFunc(offset):
   global data
@@ -375,20 +380,25 @@ def traverse_tree(ast_node, nextlist ,breaklist):
           PushParam(arg1,add1)
 
   elif ast_node.name == 'FuncCall':
-    FuncCall(ast_node.children[0])
+    
+    arg = str(newtemp())
+    add = get_offset_symbole_table(arg,'s0')
+    FuncCall(ast_node.children[0],add)
 
   elif ast_node.name == 'FuncCallwithArgs':
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
         traverse_tree(child, nextlist ,breaklist)
-    FuncCall(ast_node.children[0])
+
+    arg = str(newtemp())
+    add = get_offset_symbole_table(arg,'s0')
+    FuncCall(ast_node.children[0],add)
 
   elif ast_node.name == 'Function_definition':
     offset = get_allo_symbole_table(ast_node.value,'s0')
     arg1 = label(name = ast_node.value) 
 
     data = data + str(arg1) + '\n'
-
     BeginFunc(offset)
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
@@ -400,17 +410,17 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
   elif ast_node.name == 'RETURN_EXPRESSION':
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    # PushParam(arg1)
-    Ret()
+    Ret(arg1,add1)
   elif ast_node.name == 'RETURN':
-    Ret()
+    Ret(0, '')
 
   elif ast_node.name == 'Assignment':
     add2 = get_offset_symbole_table(ast_node.children[0].value,ast_node.children[0].scope_name)
     arg1,add1 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     Assignment(ast_node.children[0].value, add2, arg1, add1)
     arg = arg1
-    
+    add = add1
+
   elif ast_node.name in {'Addition','Multiplication','Modulus Operation',
     'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
@@ -498,7 +508,4 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
 traverse_tree(root, None,None)
 
-
-for temp in symbol_table:
-  print temp
 fout.write(data)

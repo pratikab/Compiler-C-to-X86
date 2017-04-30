@@ -35,20 +35,38 @@ exit:
 	pop ebp
 	ret
 
+test:
+	push ebp
+	mov ebp, esp
+	sub esp, 4
+	mov ebx, [ebp+12]
+	mov ecx, [ebp+8]
+	add ebx, ecx
+	mov [ebp-4], ebx
+	mov eax, [ebp-4]
+	add esp, 4
+	pop ebp
+	ret
 main:
 	push ebp
 	mov ebp, esp
 	sub esp, 12
-	mov ecx, 0
+	mov eax, 1
+	push eax
+	mov eax, 9
+	push eax
+	call test
+	pop edx
+	pop edx
+	mov [ebp-8], eax
+	mov ecx, [ebp-8]
 	mov [ebp-4], ecx
-	mov ecx, 0
-	mov [ebp-8], ecx
-	mov ecx, 0
-	mov [ebp-12], ecx
-	mov eax, 0
+	mov eax, [ebp-4]
 	push eax
 	call printInt
 	pop edx
+	mov [ebp-12], eax
+	mov eax, 0
 	add esp, 12
 	pop ebp
 	ret

@@ -6,7 +6,6 @@ root, symbol_table = cparser.main()
 # print symbol_table
 # for temp in symbol_table:
 #   print temp
-
 def get_argc_symbole_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
@@ -37,6 +36,26 @@ def get_offset_symbole_table(variable,scope_name):
         if(hash_table[variable][1].startswith('Function')):
           return ''
         return hash_table[variable][8]
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+      else:
+        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+def get_parsize_symbole_table(variable,scope_name):
+  for hash_table in symbol_table:
+    if hash_table['scope_name'] == scope_name:
+      if variable in hash_table.keys():
+        return hash_table[variable][6]
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+      else:
+        return get_offset_symbole_table(variable,hash_table['parent_scope_name'])
+def get_parlist_symbole_table(variable,scope_name):
+  for hash_table in symbol_table:
+    if hash_table['scope_name'] == scope_name:
+      if variable in hash_table.keys():
+        return hash_table[variable][5]
       elif scope_name == 's0':
         print 'Variable not found in symbol table exiting'
         sys.exit()
@@ -120,11 +139,12 @@ def PushParam(arg1,add1):
   global code
   code = code + '\tPUSH ' + str(arg1)+ '\n'
 
-def FuncCall(arg1):
+def FuncCall(arg1,arg2):
   global code
   k = int(get_argc_symbole_table(str(arg1.value),'s0'))
   # print "+++",get_argc_symbole_table(str(arg1.value),'s0')
   code = code + '\tCALL ' + str(arg1.value)+ '\n'
+  code = code + '\t'+arg2+' = Ret Value'+'\n'
 
 def Decl(arg1):
   global offset
@@ -260,20 +280,46 @@ def traverse_tree(ast_node, nextlist ,breaklist):
           PushParam(arg1,add1)
 
   elif ast_node.name == 'FuncCall':
-    FuncCall(ast_node.children[0])
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+    set_address_symbole_table(arg, 's0',address)
+    offset =offset+int(cparser.get_size(ast_node.type))
+
+    FuncCall(ast_node.children[0],str(arg))
 
   elif ast_node.name == 'FuncCallwithArgs':
+    print ast_node.type
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+    set_address_symbole_table(arg, 's0',address)
+    offset =offset+int(cparser.get_size(ast_node.type))
+
+
     if len(ast_node.children) > 0 :
       for child in ast_node.children :
         traverse_tree(child, nextlist ,breaklist)
-    FuncCall(ast_node.children[0])
+
+    FuncCall(ast_node.children[0],str(arg))
 
   elif ast_node.name == 'Function_definition':
     offset = 0
     arg1 = label(name = ast_node.value) 
-    temp = ' '+str(get_size_symbole_table(ast_node.value, ast_node.scope_name))
+    temp = str(get_size_symbole_table(ast_node.value, ast_node.scope_name))
+    t = get_parsize_symbole_table(ast_node.value, ast_node.scope_name)
+    arg_list = get_parlist_symbole_table(ast_node.value, ast_node.scope_name)
+    j = 8
+    for i in arg_list[::-1]:
+      address = '[ebp+'+str(j)+']'
+      value = i[0]
+      size = i[2]
+      scope_name = i[3]
+      set_address_symbole_table(value, scope_name, address)
+      j = j + size
 
-    code = code + str(arg1) +temp + '\n'
+
+    code = code + str(arg1) + ' ' + temp + '\n'
 
     # set_address_symbole_table(ast_node.value, ast_node.scope_name, 50)
     # print get_offset_symbole_table(ast_node.value, ast_node.scope_name)
@@ -405,4 +451,3 @@ def main():
   traverse_tree(root, None,None)
   print code
   return root, symbol_table
-

@@ -141,17 +141,7 @@ class ast_node(object):
     if self.name == 'Function_definition':
       # Method names belong in the hashtable for the outermost scope NOT in the same table as the method's variables
       symbol_table[scope_level][self.value] = [self.type, 'Function'+' '+str(self.arg_count),self.lineno,{},get_size(self.type)]
-      param_list = []
-      total_param_size = 0
-      if self.children[0].children != []:
-        # print self.children[0].value, self.children[0].children[1].children[0].value
-        for param in self.children[0].children[1].children:
-          param_list.append([param.value,param.type,get_size(param.type)])
-          total_param_size = total_param_size + get_size(param.type)
-      symbol_table[scope_level][self.value].append(param_list)
-      symbol_table[scope_level][self.value].append(total_param_size)
-      symbol_table[scope_level][self.value].append([])
-
+      
       self.scope_name = current_scope_name
       scope_level = scope_level + 1
       self.scope_name = current_scope_name
@@ -162,6 +152,17 @@ class ast_node(object):
       current_function = self.value
       symbol_table.append(new_hash_table)
       current_function_used = False
+
+      param_list = []
+      total_param_size = 0
+      if self.children[0].children != []:
+        # print self.children[0].value, self.children[0].children[1].children[0].value
+        for param in self.children[0].children[1].children:
+          param_list.append([param.value,param.type,get_size(param.type),current_scope_name])
+          total_param_size = total_param_size + get_size(param.type)
+      symbol_table[0][self.value].append(param_list)
+      symbol_table[0][self.value].append(total_param_size)
+      symbol_table[0][self.value].append([])
 
     if self.name == 'Compound Statement':
       # add a new scope if the 'compound statement' corresponding to the 'function definition' is used
@@ -397,10 +398,12 @@ class ast_node(object):
       self.type = symbol_table[0][self.value][0]
 
     if self.name == 'FuncCallwithArgs':
+      print self.value
       target_argumets = symbol_table[0][self.value][5]
       self.type = symbol_table[0][self.value][0]
       if len(self.children[1].children) > 1:
         for index,param in enumerate(self.children[1].children):
+          print "BECAUSE OF THIS"
           if param.type != target_argumets[index][1]:
             print 'lineno',self.lineno,'-COMPILATION TERMINATED Type checking failed in FuncCallwithArgs : ', self.value
             sys.exit()
