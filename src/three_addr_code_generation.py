@@ -110,7 +110,7 @@ class BinOp():
 
 def Jump(arg, arg2):
   global code
-  code = code + '\tJMP ' + str(arg) + '\n'
+  code = code + '\t'+arg2+' ' + str(arg) + '\n'
 
 def Compare(arg1, arg2):
   global code
@@ -301,7 +301,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     code = code +'\t' + str(arg3) +'\n'
     arg = ast_node.children[0].value
 
-  elif ast_node.name in {'Addition','Logical AND','Logical OR','Multiplication','Modulus Operation',
+  elif ast_node.name in {'Addition','Logical OR','Multiplication','Modulus Operation',
     'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
@@ -317,9 +317,34 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
     code = code +'\t' + str(arg3) +'\n'
 
+   # elif ast_node.name == 'Logical AND':
+   #  arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+   #  arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+  
+   #  arg = str(newtemp())
+   #  symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+ 
+   #  address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+   #  set_address_symbole_table(arg, 's0',address)
+   #  offset =offset+int(cparser.get_size(ast_node.type))
+   #  E_next = label(name = ast_node.value)
+   #  E_true = label(name = ast_node.value)
+   #  Compare(arg1,0)
+   #  Jump(E_next,"je")
+   #  code = code +'\t' + str(E_true) +'\n'
+   #  Compare(arg2,"je")
+    # arg3 = AND(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
+    # code = code +'\t' + str(arg3) +'\n'
+
   elif ast_node.name == 'UnaryOperator':
     arg1,add2 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg3 = ''
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+ 
+    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+    set_address_symbole_table(arg, 's0',address)
+    offset =offset+int(cparser.get_size(ast_node.type))
     if(ast_node.children[1].value == '++'):
       arg3 = BinOp(str(arg1),str(arg1), '+',str(1))
     else: 

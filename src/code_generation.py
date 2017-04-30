@@ -158,6 +158,52 @@ class BinOp():
       data = data + '\tsete al\n'
       data = data + '\tmovzx edx, '+'al'+'\n'
       data = data + '\tmov '+destination+', edx'+'\n'
+    if operand == '<':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\tcmp ebx, ecx\n'
+      data = data + '\tsetl al\n'
+      data = data + '\tmovzx edx, '+'al'+'\n'
+      data = data + '\tmov '+destination+', edx'+'\n'
+    if operand == '>':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\tcmp ebx, ecx\n'
+      data = data + '\tsetg al\n'
+      data = data + '\tmovzx edx, '+'al'+'\n'
+      data = data + '\tmov '+destination+', edx'+'\n'
+    if operand == '<=':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\tcmp ebx, ecx\n'
+      data = data + '\tsetle al\n'
+      data = data + '\tmovzx edx, '+'al'+'\n'
+      data = data + '\tmov '+destination+', edx'+'\n'
+    if operand == '>=':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\tcmp ebx, ecx\n'
+      data = data + '\tsetge al\n'
+      data = data + '\tmovzx edx, '+'al'+'\n'
+      data = data + '\tmov '+destination+', edx'+'\n'
+    if operand == '&':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\tand ebx, ecx\n'
+      data = data + '\tmov '+destination+', ebx'+'\n'
+    if operand == '|':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\tor ebx, ecx\n'
+      data = data + '\tmov '+destination+', ebx'+'\n'
+    if operand == '^':
+      data = data + '\tmov ebx, ' + str(source1)+'\n'
+      data = data + '\tmov ecx, ' + str(source2)+'\n'
+      data = data + '\txor ebx, ecx\n'
+      data = data + '\tmov '+destination+', ebx'+'\n'
+
+
+
   def __repr__(self):
     return self.destination + ' = ' + self.source_1 + self.operand + self.source_2
 
@@ -364,13 +410,15 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
 
   elif ast_node.name == 'UnaryOperator':
-    arg1,add2 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg3 = ''
-    if(ast_node.children[1].value == '++'):
-      arg3 = BinOp(str(arg1),str(arg1), '+',str(1))
-    else: 
-      arg3 = BinOp(str(arg1),str(arg1), '-',str(1))
-    
+    arg = str(newtemp())
+    add = get_offset_symbole_table(arg,'s0')
+    if ast_node.children[1].value == '++':
+      arg3 = BinOp(add,str(arg1),add1, '+',str(1),'')
+    elif ast_node.children[1].value == '--': 
+      arg3 = BinOp(add,str(arg1),add1, '-',str(1),'')
+    Assignment(str(arg1), add1, str(arg), add)    
   # elif ast_node.name == 'ArrayAccess':
 
   # elif ast_node.name == 'ArrayDeclaration':

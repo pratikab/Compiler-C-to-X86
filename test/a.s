@@ -38,43 +38,38 @@ exit:
 main:
 	push ebp
 	mov ebp, esp
-	sub esp, 24
-	mov ecx, 7
+	sub esp, 16
+	mov ecx, 0
 	mov [ebp-4], ecx
-	mov ecx, 4
+	mov ecx, 5
 	mov [ebp-8], ecx
-	mov ecx, 2
-	mov [ebp-12], ecx
+	mov ecx, 0
+	mov [ebp-4], ecx
 L1:
-	mov ebx, [ebp-8]
-	mov ecx, 4
+	mov ebx, [ebp-4]
+	mov ecx, 8
 	cmp ebx, ecx
-	sete al
+	setl al
 	movzx edx, al
-	mov [ebp-16], edx
+	mov [ebp-12], edx
 	xor ebx, ebx
 	xor ecx, ecx
-	mov ebx, [ebp-16]
+	mov ebx, [ebp-12]
 	mov ecx, 0
 	cmp ebx, ecx
 	je L0
-	mov ebx, [ebp-12]
-	mov ecx, 4
-	add ebx, ecx
-	mov [ebp-20], ebx
-	mov ecx, [ebp-20]
-	mov [ebp-12], ecx
-	mov ebx, [ebp-8]
-	mov ecx, 1
-	add ebx, ecx
-	mov [ebp-24], ebx
-	mov ecx, [ebp-24]
-	mov [ebp-8], ecx
-	jmp L1
-L0:
-	mov eax, [ebp-12]
+	mov eax, [ebp-4]
 	push eax
 	call printInt
 	pop edx
+L2:
+	mov ebx, [ebp-4]
+	mov ecx, 1
+	add ebx, ecx
+	mov [ebp-16], ebx
+	mov ecx, [ebp-16]
+	mov [ebp-4], ecx
+	jmp L1
+L0:
 	pop ebp
 	ret
