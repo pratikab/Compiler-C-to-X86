@@ -949,27 +949,7 @@ def p_direct_declarator_2(p):
                         '''
   p[0] = ast_node('ArrayIntialize',value = p[1].value,type =p[1].type,children = [p[1]], lineno = p[1].lineno) 
   p[0].arraylen.append(0)
-# def p_direct_declarator_3(p):
-#   '''direct_declarator  : direct_declarator '[' '*' ']'
-#                         '''
-#   p[0] = p[1]
-# def p_direct_declarator_4(p):
-#   '''direct_declarator  : direct_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-#                         | direct_declarator '[' STATIC assignment_expression ']'
-#                         '''
 
-# def p_direct_declarator_5(p):
-#   '''direct_declarator  : direct_declarator '[' type_qualifier_list '*' ']'
-#                         '''
-# def p_direct_declarator_7(p):
-#   '''direct_declarator  : direct_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-#                         '''
-# def p_direct_declarator_8(p):
-#   '''direct_declarator  : direct_declarator '[' type_qualifier_list assignment_expression ']'
-#                         '''
-# def p_direct_declarator_9(p):
-#   '''direct_declarator  : direct_declarator '[' type_qualifier_list ']'
-#                        '''
 def p_direct_declarator_3(p):
   '''direct_declarator  : direct_declarator '[' assignment_expression ']'
                         '''
@@ -1092,48 +1072,12 @@ def p_direct_abstract_declarator(p):
 def p_direct_abstract_declarator_1(p):
   '''direct_abstract_declarator   : '[' ']'
                                   '''
-# def p_direct_abstract_declarator_2(p):
-#   '''direct_abstract_declarator   : '[' '*' ']'
-#                                   '''
-# def p_direct_abstract_declarator_3(p):
-#   '''direct_abstract_declarator   : '[' STATIC type_qualifier_list assignment_expression ']'
-#                                   '''
-# def p_direct_abstract_declarator_4(p):
-#   '''direct_abstract_declarator   : '[' STATIC assignment_expression ']'
-#                                    '''
-# def p_direct_abstract_declarator_5(p):
-#   '''direct_abstract_declarator   : '[' type_qualifier_list STATIC assignment_expression ']'
-#                                   '''
-# def p_direct_abstract_declarator_6(p):
-#   '''direct_abstract_declarator   : '[' type_qualifier_list assignment_expression ']'
-#                                   '''
-# def p_direct_abstract_declarator_7(p):
-#   '''direct_abstract_declarator   : '[' type_qualifier_list ']'
-#                                   '''
 def p_direct_abstract_declarator_2(p):
   '''direct_abstract_declarator   : '[' assignment_expression ']'
                                   '''
 def p_direct_abstract_declarator_3(p):
   '''direct_abstract_declarator   : direct_abstract_declarator '[' ']'
                                   '''
-# def p_direct_abstract_declarator_4(p):
-#    '''direct_abstract_declarator   : direct_abstract_declarator '[' '*' ']'
-#                                   '''
-# def p_direct_abstract_declarator_11(p):
-#   '''direct_abstract_declarator   : direct_abstract_declarator '[' STATIC type_qualifier_list assignment_expression ']'
-#                                   '''
-# def p_direct_abstract_declarator_12(p):
-#   '''direct_abstract_declarator   : direct_abstract_declarator '[' STATIC assignment_expression ']'
-#                                   '''
-# def p_direct_abstract_declarator_13(p):
-#   '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list assignment_expression ']'
-#                                   '''
-# def p_direct_abstract_declarator_14(p):
-#   '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list STATIC assignment_expression ']'
-#                                   '''
-# def p_direct_abstract_declarator_15(p):
-#   '''direct_abstract_declarator   : direct_abstract_declarator '[' type_qualifier_list ']'
-#                                   '''
 def p_direct_abstract_declarator_5(p):
   '''direct_abstract_declarator   : direct_abstract_declarator '[' assignment_expression ']'
                                   '''

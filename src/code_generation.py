@@ -414,9 +414,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
         if child is not None: 
           traverse_tree(child, nextlist ,breaklist)
     EndFunc(offset)
-  # elif ast_node.name == 'paramater':
-  #   PopParam(ast_node.value)
-
+    
   elif ast_node.name == 'RETURN_EXPRESSION':
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     Ret(arg1,add1,offset)
@@ -500,7 +498,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg = str(newtemp())
     add = get_offset_symbol_table(arg,'s0')
-    a1 = '-' + arg1
+    a1 = arg1
     print a1
     if add1 != '':
       a1 = add1
