@@ -156,7 +156,8 @@ class BinOp():
       data = data + '\tmov ecx, ' + str(source2)+'\n'
       data = data + '\tcmp ebx, ecx\n'
       data = data + '\tsete al\n'
-      data = data + '\tmov '+destination+', al'+'\n'
+      data = data + '\tmovzx edx, '+'al'+'\n'
+      data = data + '\tmov '+destination+', edx'+'\n'
   def __repr__(self):
     return self.destination + ' = ' + self.source_1 + self.operand + self.source_2
 
@@ -175,6 +176,8 @@ def Compare(arg1,add1,arg2,add2):
       a1 = add1
   if add2 != '':
       a2 = add2
+  data = data + '\txor ebx, ebx'+'\n'
+  data = data + '\txor ecx, ecx'+'\n'
   data = data + '\tmov ebx, ' + str(a1)+'\n'
   data = data + '\tmov ecx, ' + str(a2)+'\n'
   data = data + '\tcmp ebx, ecx\n'
