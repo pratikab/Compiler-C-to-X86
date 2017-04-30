@@ -301,7 +301,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     code = code +'\t' + str(arg3) +'\n'
     arg = ast_node.children[0].value
 
-  elif ast_node.name in {'Addition','Logical OR','Multiplication','Modulus Operation',
+  elif ast_node.name in {'Addition','Multiplication','Modulus Operation',
     'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
@@ -317,24 +317,54 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg3 = BinOp(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
     code = code +'\t' + str(arg3) +'\n'
 
-   # elif ast_node.name == 'Logical AND':
-   #  arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-   #  arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
-  
-   #  arg = str(newtemp())
-   #  symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
- 
-   #  address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
-   #  set_address_symbole_table(arg, 's0',address)
-   #  offset =offset+int(cparser.get_size(ast_node.type))
-   #  E_next = label(name = ast_node.value)
-   #  E_true = label(name = ast_node.value)
-   #  Compare(arg1,0)
-   #  Jump(E_next,"je")
-   #  code = code +'\t' + str(E_true) +'\n'
-   #  Compare(arg2,"je")
-    # arg3 = AND(str(arg),str(arg1),ast_node.children[2].value,str(arg2))
-    # code = code +'\t' + str(arg3) +'\n'
+  elif ast_node.name == 'Logical AND':
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+    set_address_symbole_table(arg, 's0',address)
+    offset =offset+int(cparser.get_size(ast_node.type))
+
+    E_next = label(name = ast_node.value)
+    E_true = label(name = ast_node.value)
+
+    Compare(arg1,0)
+    Jump(E_next,"je")
+    Compare(arg2,0)
+    Jump(E_next,"je")
+    code = code + "\tAND = 1"+'\n'
+    Jump(E_true,"jmp")
+    code = code + str(E_next) + '\n'
+    code = code + "\tAND = 0"+'\n'
+    code = code + str(E_true) + '\n'
+
+  elif ast_node.name == 'Logical OR':
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type)]
+    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+    set_address_symbole_table(arg, 's0',address)
+    offset =offset+int(cparser.get_size(ast_node.type))
+
+    E_next = label(name = ast_node.value)
+    E_true = label(name = ast_node.value)
+    E_false = label(name = ast_node.value)
+
+    Compare(arg1,0)
+    Jump(E_false,"jne")
+    Compare(arg2,0)
+    Jump(E_true,"je")
+
+    code = code + str(E_false) + '\n'
+    code = code + "\tOR = 1"+'\n'
+    Jump(E_next,"jmp")
+    code = code + str(E_true) + '\n'
+    code = code + "\tOR = 0"+'\n'
+    code = code + str(E_next) + '\n'
 
   elif ast_node.name == 'UnaryOperator':
     arg1,add2 = traverse_tree(ast_node.children[0], nextlist ,breaklist)

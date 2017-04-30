@@ -304,7 +304,7 @@ class ast_node(object):
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: error in Equality expression types'
         sys.exit()
 
-    if self.name == ('AND' or 'Exclusive OR' or'Inclusive OR'):
+    if self.name in {'AND','Exclusive OR','Inclusive OR'}:
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
       valid = ['int','unsigned int','BOOL']
@@ -315,7 +315,7 @@ class ast_node(object):
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: error in logical operation types'
         sys.exit()
 
-    if self.name == ('Logical AND' or'Logical OR'):
+    if self.name in {'Logical AND', 'Logical OR'}:
       type_children_0 = fetch_type_from_symbol_table(self.children[0])
       type_children_1 = fetch_type_from_symbol_table(self.children[1])
       valid = ['double','float','int','unsigned int','BOOL']

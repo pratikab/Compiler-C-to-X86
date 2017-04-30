@@ -201,6 +201,12 @@ class BinOp():
       data = data + '\tmov ecx, ' + str(source2)+'\n'
       data = data + '\txor ebx, ecx\n'
       data = data + '\tmov '+destination+', ebx'+'\n'
+    if operand == '&&':
+      data = data + '\tmovzx eax, al'+'\n'
+      data = data + '\tmov '+destination+', eax'+'\n'
+    if operand == '||':
+      data = data + '\tmovzx eax, al'+'\n'
+      data = data + '\tmov '+destination+', eax'+'\n'
 
 
 
@@ -213,6 +219,9 @@ def Jump(arg, arg2):
     data = data + '\tje '+str(arg).rstrip(':')+'\n'
   if(arg2 == 'jmp'):
     data = data + '\tjmp '+str(arg).rstrip(':')+'\n'
+  if(arg2 == 'jne'):
+    data = data + '\tjne '+str(arg).rstrip(':')+'\n'
+
 
 def Compare(arg1,add1,arg2,add2):
   global data
@@ -401,12 +410,60 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Assignment(ast_node.children[0].value, add2, arg1, add1)
     arg = arg1
     
-  elif ast_node.name in {'Addition','Logical AND','Logical OR','Multiplication','Modulus Operation',
+  elif ast_node.name in {'Addition','Multiplication','Modulus Operation',
     'Shift','Relation','EqualityExpression','AND', 'Exclusive OR','Inclusive OR'}:
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
     arg = str(newtemp())
     add = get_offset_symbole_table(arg,'s0')
+    BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
+
+  elif ast_node.name == 'Logical AND':
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+
+    arg = str(newtemp())
+    add = get_offset_symbole_table(arg,'s0')
+
+    E_next = label(name = ast_node.value)
+    E_true = label(name = ast_node.value)
+
+    Compare(arg1,add1,'0','')
+    Jump(E_next,"je")
+    Compare(arg2,add2,'0','')
+    Jump(E_next,"je")
+
+    data = data + "\tmov eax, 1"+'\n'
+    Jump(E_true,"jmp")
+
+    data = data + str(E_next) + '\n'
+    data = data + "\tmov eax, 0"+'\n'
+
+    data = data + str(E_true) + '\n'
+    BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
+  elif ast_node.name == 'Logical OR':
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+
+    arg = str(newtemp())
+    add = get_offset_symbole_table(arg,'s0')
+
+    E_next = label(name = ast_node.value)
+    E_true = label(name = ast_node.value)
+    E_false = label(name = ast_node.value)
+
+    Compare(arg1,add1,'0','')
+    Jump(E_false,"jne")
+    Compare(arg2,add2,'0','')
+    Jump(E_true,"je")
+
+    data = data + str(E_false) + '\n'
+    data = data + "\tmov eax, 1"+'\n'
+    Jump(E_next,"jmp")
+    data = data + str(E_true) + '\n'
+    data = data + "\tmov eax, 0"+'\n'
+    data = data + str(E_next) + '\n'
+
     BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
 
   elif ast_node.name == 'UnaryOperator':
