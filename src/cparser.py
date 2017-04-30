@@ -13,8 +13,8 @@ graph = pydot.Dot(graph_type='graph')
 # todo: Struct Address Dereference
 
 # Symbol Table is a list of hash tables
-# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type, 'Function or not',line_no,struct_scope,size,function_parameter_list,
-#                                                                   function_parameter_size,array_index_list,address]
+# Each Hash table is of the form, symbol_table[scope_level]['A'] = [type,'Function or not',line_no,struct_scope,size,
+#                                           function_parameter_list,function_parameter_size,array_index_list,address]
 # It also has the attributes symbol_stable[scope_level]['parent_scope_name'] = 'name of parent scope', 
 # symbol_stable[scope_level]['scope_name'] = 'current score name'
 symbol_table = []
@@ -148,7 +148,6 @@ class ast_node(object):
         for param in self.children[0].children[1].children:
           param_list.append([param.value,param.type,get_size(param.type)])
           total_param_size = total_param_size + get_size(param.type)
-          print param_list, total_param_size
       symbol_table[scope_level][self.value].append(param_list)
       symbol_table[scope_level][self.value].append(total_param_size)
       symbol_table[scope_level][self.value].append([])
@@ -348,7 +347,6 @@ class ast_node(object):
       if fetch_type_from_symbol_table(self.children[0]) not in ['int','unsigned int']: 
         print 'lineno',self.lineno,'-COMPILATION TERMINATED: error in logical ArrayDeclaration'
         sys.exit()
-      print self.arraylen,get_size(fetch_type_from_symbol_table(self))
       total_size = 1*get_size(fetch_type_from_symbol_table(self))
       array_index_list = []
       for index in self.arraylen:
@@ -356,7 +354,6 @@ class ast_node(object):
         total_size = total_size*int(index)
       symbol_table[scope_level][self.value][4] = total_size
       symbol_table[scope_level][self.value][7] = array_index_list
-      print symbol_table
 
     if self.name == 'InitializerList':
       for child in self.children:
@@ -395,6 +392,14 @@ class ast_node(object):
 
     if self.name == 'Address Of Operation':
       self.type = fetch_type_from_symbol_table(self.children[0])+' *'
+
+    if self.name == 'FuncCallwithArgs':
+      target_argumets = symbol_table[0][self.value][5]
+      if self.children[1].children != []:
+        for index,param in enumerate(self.children[1].children):
+          if param.type != target_argumets[index][1]:
+            print 'lineno',self.lineno,'-COMPILATION TERMINATED Type checking failed in FuncCallwithArgs : ', self.value
+            sys.exit()
 
   def print_tree(self,depth):
     output = ''
