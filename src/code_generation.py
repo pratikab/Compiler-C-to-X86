@@ -7,10 +7,10 @@ with open ("../test/lib.s", 'r') as myfile:
       data=myfile.read()
 fout.write(data)
 
-root, symbol_table = three_addr_code_generation.main()
+gb = 'section .data\n'
 
-for temp in symbol_table:
-  print temp, '\n'
+root, symbol_table = three_addr_code_generation.main()
+print symbol_table
 
 def get_argc_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
@@ -70,6 +70,16 @@ def get_array_symbol_table(variable,scope_name):
         sys.exit()
       else:
         return get_array_symbol_table(variable,hash_table['parent_scope_name'])
+def get_size_symbol_table(variable,scope_name):
+  for hash_table in symbol_table:
+    if hash_table['scope_name'] == scope_name:
+      if variable in hash_table.keys():
+        return hash_table[variable][4]
+      elif scope_name == 's0':
+        print 'Variable not found in symbol table exiting'
+        sys.exit()
+      else:
+        return get_size_symbol_table(variable,hash_table['parent_scope_name'])
 count_label = 0
 count_temp = 0
 data = ''
@@ -105,7 +115,6 @@ class Assignment():
     
     if sourceadd.startswith('array'):
       k = sourceadd.split(" ")[1]
-      print k, sourceadd , '\n'*10
       data = data + '\tmov eax, '+k+'\n'   
     if destinationadd != '':
       if destinationadd.startswith("array"):
@@ -298,9 +307,12 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   if ast_node.name == 'IF Statement':
     E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
+    arg = str(newtemp())
+    add = get_offset_symbol_table(arg,'s0')
     
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    Compare(arg1,add1,'0','')
+    Assignment(arg,add,arg1,add1)
+    Compare(arg,add,'0','')
     Jump(E_next, "je")
     
     data = data + str(E_true) + '\n'
@@ -315,9 +327,12 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
     E_false = label(name = ast_node.value)
+    arg = str(newtemp())
+    add = get_offset_symbol_table(arg,'s0')
 
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
-    Compare(arg1,add1,'0','')
+    Assignment(arg,add,arg1,add1)
+    Compare(arg,add,'0','')
     Jump(E_false,"je")
     
     data = data + str(E_true) + '\n'
@@ -328,6 +343,27 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     data = data + str(E_false) + '\n'
 
     traverse_tree(ast_node.children[2], nextlist ,breaklist)
+
+    data = data + str(E_next) + '\n'
+
+  elif ast_node.name == 'Ternary Operation':
+    E_next = label(name = ast_node.value)
+    E_false = label(name = ast_node.value)
+    arg = str(newtemp())
+    add = get_offset_symbol_table(arg,'s0')
+
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    Compare(arg1,add1,'0','')
+    Jump(E_false,"je")
+    
+    arg2, add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    Assignment(arg, add, arg2, add2)
+    Jump(E_next,"jmp")
+
+    data = data + str(E_false) + '\n'
+
+    arg2, add2 = traverse_tree(ast_node.children[2], nextlist ,breaklist)
+    Assignment(arg, add, arg2, add2)
 
     data = data + str(E_next) + '\n'
 
@@ -372,6 +408,10 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_begin,"jmp")
 
     data = data + str(E_next) + '\n'
+  elif ast_node.name == 'VarDecl':
+    global gb
+    if ast_node.scope_name == 's0':
+      gb = gb + str(ast_node.value)+' TIMES '+str(get_size_symbol_table(ast_node.value,'s0')/4)+' DD 0\n'
 
   elif ast_node.name == 'VarDecl and Initialise':
     add2 = get_offset_symbol_table(ast_node.children[0].value,ast_node.scope_name)
@@ -459,6 +499,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
     data = data + str(E_true) + '\n'
     BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
+
   elif ast_node.name == 'Logical OR':
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
     arg2,add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
@@ -499,7 +540,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     arg = str(newtemp())
     add = get_offset_symbol_table(arg,'s0')
     a1 = arg1
-    print a1
     if add1 != '':
       a1 = add1
     if a1.startswith("array"):
@@ -554,9 +594,11 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     BinOp(add1,'',arg2, '*',str(p),'')
     f = get_offset_symbol_table(ast_node.value,ast_node.scope_name)
     f = f.split('-')[1].split(']')[0]
-    print f,add1
-    data = data + '\tmov edx, ebp\n'
-    data = data + '\tsub edx, '+ f +'\n'
+    if ast_node.scope_name != 's0':
+      data = data + '\tmov edx, ebp\n'
+      data = data + '\tsub edx, '+ f +'\n'
+    else:
+      data = data + '\tmov edx, '+ast_node.value+'\n'
     data = data + '\tadd edx, '+add1+ '\n'
 
     arg1 = str(newtemp())
@@ -588,3 +630,4 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 traverse_tree(root, None,None)
 
 fout.write(data)
+fout.write(gb)

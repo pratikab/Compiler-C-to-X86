@@ -3,11 +3,11 @@ import sys
 import cparser
 
 root, symbol_table = cparser.main()
-print symbol_table
-for temp in symbol_table:
-  for key in temp:
-    print key, len(temp[key])
-  print temp
+# print symbol_table
+# for temp in symbol_table:
+#   for key in temp:
+#     print key, len(temp[key])
+#   print temp
 def get_argc_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
     if hash_table['scope_name'] == scope_name:
@@ -197,14 +197,23 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   if ast_node.name == 'IF Statement':
     E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+    address = "[ebp-"+str(offset+4)+"]"
+    set_address_symbol_table(arg, 's0',address)
+    offset =offset+4
     
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg3 = Assignment(arg,'',arg1,add1)
+    code = code +'\t' + str(arg3) +'\n'
     Compare(arg1,0)
     Jump(E_next, "je")
     
     code = code + str(E_true) + '\n'
 
     traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    
+    code = code +'\t' + str(arg3) +'\n'
     Jump(E_next,"jmp")
     
     code = code + str(E_next) + '\n'
@@ -214,9 +223,17 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     E_next = label(name = ast_node.value)
     E_true = label(name = ast_node.value)
     E_false = label(name = ast_node.value)
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+    address = "[ebp-"+str(offset+4)+"]"
+    set_address_symbol_table(arg, 's0',address)
+    offset =offset+4
 
     arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    arg3 = Assignment(arg,'',arg1,add1)
+    code = code +'\t' + str(arg3) +'\n'
     Compare(arg1,0)
+    # Compare(arg1,0)
     Jump(E_false,"je")
     
     code = code + str(E_true) + '\n'
@@ -227,6 +244,32 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     code = code + str(E_false) + '\n'
 
     traverse_tree(ast_node.children[2], nextlist ,breaklist)
+
+    code = code + str(E_next) + '\n'
+
+  elif ast_node.name == 'Ternary Operation':
+    E_next = label(name = ast_node.value)
+    E_false = label(name = ast_node.value)
+    arg = str(newtemp())
+    symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
+    address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
+    set_address_symbol_table(arg, 's0',address)
+    offset =offset+int(cparser.get_size(ast_node.type))
+
+    arg1,add1 = traverse_tree(ast_node.children[0], nextlist ,breaklist)
+    Compare(arg1,0)
+    Jump(E_false,"je")
+    
+    arg2, add2 = traverse_tree(ast_node.children[1], nextlist ,breaklist)
+    arg3 = Assignment(arg,'',arg2,add2)
+    code = code +'\t' + str(arg3) +'\n'
+    Jump(E_next,"jmp")
+
+    code = code + str(E_false) + '\n'
+
+    arg2, add2 = traverse_tree(ast_node.children[2], nextlist ,breaklist)
+    arg3 = Assignment(arg,'',arg2,add2)
+    code = code +'\t' + str(arg3) +'\n'
 
     code = code + str(E_next) + '\n'
 
@@ -273,6 +316,9 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     code = code + str(E_next) + '\n'
 
   elif ast_node.name == 'VarDecl':
+    if ast_node.scope_name == 's0':
+      code = code + "g"
+      print get_size_symbol_table(ast_node.value,'s0')
     Decl(ast_node)
   elif ast_node.name == 'VarDecl and Initialise':
     add2 = Decl(ast_node)
@@ -302,7 +348,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'FuncCallwithArgs':
     arg = str(newtemp())
     symbol_table[0][arg] = [ast_node.type,'',-1,{},cparser.get_size(ast_node.type),[],-1,[]]
-    print ast_node.type
     address = "[ebp-"+str(offset+int(cparser.get_size(ast_node.type)))+"]"
     set_address_symbol_table(arg, 's0',address)
     offset =offset+int(cparser.get_size(ast_node.type))
@@ -455,8 +500,6 @@ def traverse_tree(ast_node, nextlist ,breaklist):
       t = 1
       for j in range(i,len(arr)):
         # print symbol_table
-        print ast_node.value, arr, ast_node.scope_name
-        print type(arr[j]), arr[j]
         t = t * arr[j]
       mul_size.append(t)
     mul_size.append(1)
