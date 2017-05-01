@@ -318,7 +318,7 @@ def traverse_tree(ast_node, nextlist ,breaklist):
   elif ast_node.name == 'VarDecl':
     if ast_node.scope_name == 's0':
       code = code + "g"
-      print get_size_symbol_table(ast_node.value,'s0')
+      # print get_size_symbol_table(ast_node.value,'s0')
     Decl(ast_node)
   elif ast_node.name == 'VarDecl and Initialise':
     add2 = Decl(ast_node)

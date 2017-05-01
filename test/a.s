@@ -35,465 +35,233 @@ exit:
 	pop ebp
 	ret
 
-swap:
+left_child:
 	push ebp
 	mov ebp, esp
-	sub esp, 52
-	mov eax, [ebp+8]
-	mov ecx, 1
+	sub esp, 12
+	mov eax, 2
+	mov ecx, [ebp+8]
 	imul eax, ecx
 	mov [ebp-8], eax
 	mov eax, [ebp-8]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-12], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-12]
-	mov [ebp-16], edx
-	mov edx, [ebp-16]
-	mov ecx, [edx]
-	mov [ebp-4], ecx
-	mov eax, [ebp+8]
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-20], eax
-	mov eax, [ebp-20]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-24], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-24]
-	mov [ebp-28], edx
-	mov eax, [ebp+12]
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-32], eax
-	mov eax, [ebp-32]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-36], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-36]
-	mov [ebp-40], edx
-	mov eax, [ebp-28]
-	mov edx, [ebp-40]
-	mov ecx, [edx]
-	mov [eax], ecx
-	mov eax, [ebp+12]
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-44], eax
-	mov eax, [ebp-44]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-48], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-48]
-	mov [ebp-52], edx
-	mov eax, [ebp-52]
-	mov ecx, [ebp-4]
-	mov [eax], ecx
-	add esp, 52
-	pop ebp
-	ret
-partition:
-	push ebp
-	mov ebp, esp
-	sub esp, 84
-	mov eax, [ebp+8]
-	mov ecx, 1
-	sub eax, ecx
-	mov [ebp-8], eax
-	mov ecx, [ebp-8]
-	mov [ebp-4], ecx
-	mov ecx, [ebp+12]
-	mov [ebp-12], ecx
-	mov ecx, 1
-	mov [ebp-16], ecx
-L1:
-	mov eax, [ebp-16]
-	mov ecx, 1
-	cmp eax, ecx
-	sete al
-	movzx eax, al
-	mov [ebp-20], eax
-	xor ebx, ebx
-	xor ecx, ecx
-	mov ebx, [ebp-20]
-	mov ecx, 0
-	cmp ebx, ecx
-	je L0
-L3:
-	mov eax, [ebp-4]
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-24], eax
-	mov eax, [ebp-24]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-28], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-28]
-	mov [ebp-32], edx
-	mov eax, [ebp-32]
-	mov eax, [eax]
-	mov ecx, [ebp+16]
-	cmp eax, ecx
-	setl al
-	movzx eax, al
-	mov [ebp-36], eax
-	xor ebx, ebx
-	xor ecx, ecx
-	mov ebx, [ebp-36]
-	mov ecx, 0
-	cmp ebx, ecx
-	je L2
-	mov eax, [ebp-4]
 	mov ecx, 1
 	add eax, ecx
-	mov [ebp-40], eax
-	mov ecx, [ebp-40]
-	mov [ebp-4], ecx
-	jmp L3
-L2:
-L5:
-	mov eax, [ebp-12]
-	mov ecx, 0
-	cmp eax, ecx
-	setg al
-	movzx eax, al
-	mov [ebp-44], eax
-	mov eax, [ebp-12]
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-48], eax
-	mov eax, [ebp-48]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-52], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-52]
-	mov [ebp-56], edx
-	mov eax, [ebp-56]
-	mov eax, [eax]
-	mov ecx, [ebp+16]
-	cmp eax, ecx
-	setg al
-	movzx eax, al
-	mov [ebp-60], eax
-	xor ebx, ebx
-	xor ecx, ecx
-	mov ebx, [ebp-44]
-	mov ecx, 0
-	cmp ebx, ecx
-	je L6
-	xor ebx, ebx
-	xor ecx, ecx
-	mov ebx, [ebp-60]
-	mov ecx, 0
-	cmp ebx, ecx
-	je L6
-	mov eax, 1
-	jmp L7
-L6:
-	mov eax, 0
-L7:
-	mov eax, [ebp-44]
-	mov ecx, [ebp-60]
-	movzx eax, al
-	mov [ebp-64], eax
-	xor ebx, ebx
-	xor ecx, ecx
-	mov ebx, [ebp-64]
-	mov ecx, 0
-	cmp ebx, ecx
-	je L4
-	mov eax, [ebp-12]
-	mov ecx, 1
-	sub eax, ecx
-	mov [ebp-68], eax
-	mov ecx, [ebp-68]
-	mov [ebp-12], ecx
-	jmp L5
-L4:
-	mov eax, [ebp-4]
+	mov [ebp-12], eax
 	mov ecx, [ebp-12]
+	mov [ebp-4], ecx
+	mov eax, [ebp-4]
+	add esp, 12
+	pop ebp
+	ret
+	add esp, 12
+	pop ebp
+	ret
+right_child:
+	push ebp
+	mov ebp, esp
+	sub esp, 12
+	mov eax, 2
+	mov ecx, [ebp+8]
+	imul eax, ecx
+	mov [ebp-8], eax
+	mov eax, [ebp-8]
+	mov ecx, 2
+	add eax, ecx
+	mov [ebp-12], eax
+	mov ecx, [ebp-12]
+	mov [ebp-4], ecx
+	mov eax, [ebp-4]
+	add esp, 12
+	pop ebp
+	ret
+	add esp, 12
+	pop ebp
+	ret
+in_order:
+	push ebp
+	mov ebp, esp
+	sub esp, 40
+	mov eax, [ebp+8]
+	mov ecx, 7
 	cmp eax, ecx
 	setge al
 	movzx eax, al
-	mov [ebp-76], eax
-	mov ecx, [ebp-76]
-	mov [ebp-72], ecx
-	xor ebx, ebx
-	xor ecx, ecx
-	mov ebx, [ebp-72]
-	mov ecx, 0
-	cmp ebx, ecx
-	je L10
-L9:
-	jmp L0
-	jmp L8
-L10:
-	mov eax, [ebp-12]
-	push eax
-	mov eax, [ebp-4]
-	push eax
-	call swap
-	pop edx
-	pop edx
-	mov [ebp-80], eax
-L8:
-	jmp L1
-L0:
-	mov eax, [ebp+12]
-	push eax
-	mov eax, [ebp-4]
-	push eax
-	call swap
-	pop edx
-	pop edx
-	mov [ebp-84], eax
-	mov eax, [ebp-4]
-	add esp, 84
-	pop ebp
-	ret
-	add esp, 84
-	pop ebp
-	ret
-quickSort:
-	push ebp
-	mov ebp, esp
-	sub esp, 52
-	mov eax, [ebp+12]
-	mov ecx, [ebp+8]
-	sub eax, ecx
 	mov [ebp-8], eax
-	mov eax, [ebp-8]
-	mov ecx, 0
-	cmp eax, ecx
-	setle al
-	movzx eax, al
-	mov [ebp-12], eax
-	mov ecx, [ebp-12]
+	mov ecx, [ebp-8]
 	mov [ebp-4], ecx
 	xor ebx, ebx
 	xor ecx, ecx
 	mov ebx, [ebp-4]
 	mov ecx, 0
 	cmp ebx, ecx
-	je L13
-L12:
+	je L0
+L1:
 	mov eax, 0
-	add esp, 52
+	add esp, 40
 	pop ebp
 	ret
-	jmp L11
-L13:
-	mov eax, [ebp+12]
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-20], eax
-	mov eax, [ebp-20]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-24], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-24]
-	mov [ebp-28], edx
-	mov edx, [ebp-28]
-	mov ecx, [edx]
-	mov [ebp-16], ecx
-	mov eax, [ebp-16]
-	push eax
-	mov eax, [ebp+12]
-	push eax
+	jmp L0
+L0:
 	mov eax, [ebp+8]
 	push eax
-	call partition
+	call left_child
 	pop edx
+	mov [ebp-16], eax
+	mov ecx, [ebp-16]
+	mov [ebp-12], ecx
+	mov eax, [ebp+8]
+	push eax
+	call right_child
 	pop edx
+	mov [ebp-24], eax
+	mov ecx, [ebp-24]
+	mov [ebp-20], ecx
+	mov eax, [ebp-12]
+	push eax
+	call in_order
 	pop edx
-	mov [ebp-36], eax
-	mov ecx, [ebp-36]
+	mov [ebp-28], eax
+	mov ecx, [ebp+8]
 	mov [ebp-32], ecx
 	mov eax, [ebp-32]
-	mov ecx, 1
-	sub eax, ecx
+	push eax
+	call printInt
+	pop edx
+	mov [ebp-36], eax
+	mov eax, [ebp-20]
+	push eax
+	call in_order
+	pop edx
 	mov [ebp-40], eax
-	mov eax, [ebp-40]
-	push eax
-	mov eax, [ebp+8]
-	push eax
-	call quickSort
-	pop edx
-	pop edx
-	mov [ebp-44], eax
-	mov eax, [ebp+12]
-	push eax
-	mov eax, [ebp-32]
-	mov ecx, 1
-	add eax, ecx
-	mov [ebp-48], eax
-	mov eax, [ebp-48]
-	push eax
-	call quickSort
-	pop edx
-	pop edx
-	mov [ebp-52], eax
-L11:
-	add esp, 52
+	mov eax, 0
+	add esp, 40
+	pop ebp
+	ret
+	add esp, 40
 	pop ebp
 	ret
 main:
 	push ebp
 	mov ebp, esp
-	sub esp, 112
-	mov ecx, 7
-	mov [ebp-4], ecx
+	sub esp, 92
 	mov eax, 0
 	mov ecx, 1
 	imul eax, ecx
-	mov [ebp-8], eax
-	mov eax, [ebp-8]
+	mov [ebp-4], eax
+	mov eax, [ebp-4]
 	mov ecx, 4
 	imul eax, ecx
-	mov [ebp-12], eax
+	mov [ebp-8], eax
 	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-12]
-	mov [ebp-16], edx
-	mov eax, [ebp-16]
-	mov ecx, 4
+	sub edx, 40
+	add edx, [ebp-8]
+	mov [ebp-12], edx
+	mov eax, [ebp-12]
+	mov ecx, 5
 	mov [eax], ecx
 	mov eax, 1
 	mov ecx, 1
 	imul eax, ecx
-	mov [ebp-20], eax
-	mov eax, [ebp-20]
+	mov [ebp-16], eax
+	mov eax, [ebp-16]
 	mov ecx, 4
 	imul eax, ecx
-	mov [ebp-24], eax
+	mov [ebp-20], eax
 	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-24]
-	mov [ebp-28], edx
-	mov eax, [ebp-28]
-	mov ecx, 6
+	sub edx, 40
+	add edx, [ebp-20]
+	mov [ebp-24], edx
+	mov eax, [ebp-24]
+	mov ecx, 3
 	mov [eax], ecx
 	mov eax, 2
 	mov ecx, 1
 	imul eax, ecx
-	mov [ebp-32], eax
-	mov eax, [ebp-32]
+	mov [ebp-28], eax
+	mov eax, [ebp-28]
 	mov ecx, 4
 	imul eax, ecx
-	mov [ebp-36], eax
+	mov [ebp-32], eax
 	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-36]
-	mov [ebp-40], edx
-	mov eax, [ebp-40]
-	mov ecx, 3
+	sub edx, 40
+	add edx, [ebp-32]
+	mov [ebp-36], edx
+	mov eax, [ebp-36]
+	mov ecx, 6
 	mov [eax], ecx
 	mov eax, 3
 	mov ecx, 1
 	imul eax, ecx
-	mov [ebp-44], eax
-	mov eax, [ebp-44]
+	mov [ebp-40], eax
+	mov eax, [ebp-40]
 	mov ecx, 4
 	imul eax, ecx
-	mov [ebp-48], eax
+	mov [ebp-44], eax
 	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-48]
-	mov [ebp-52], edx
-	mov eax, [ebp-52]
-	mov ecx, 2
+	sub edx, 40
+	add edx, [ebp-44]
+	mov [ebp-48], edx
+	mov eax, [ebp-48]
+	mov ecx, 1
 	mov [eax], ecx
 	mov eax, 4
 	mov ecx, 1
 	imul eax, ecx
-	mov [ebp-56], eax
-	mov eax, [ebp-56]
+	mov [ebp-52], eax
+	mov eax, [ebp-52]
 	mov ecx, 4
 	imul eax, ecx
-	mov [ebp-60], eax
+	mov [ebp-56], eax
 	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-60]
-	mov [ebp-64], edx
-	mov eax, [ebp-64]
-	mov ecx, 1
+	sub edx, 40
+	add edx, [ebp-56]
+	mov [ebp-60], edx
+	mov eax, [ebp-60]
+	mov ecx, 2
 	mov [eax], ecx
 	mov eax, 5
 	mov ecx, 1
 	imul eax, ecx
-	mov [ebp-68], eax
-	mov eax, [ebp-68]
+	mov [ebp-64], eax
+	mov eax, [ebp-64]
 	mov ecx, 4
 	imul eax, ecx
-	mov [ebp-72], eax
+	mov [ebp-68], eax
 	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-72]
-	mov [ebp-76], edx
-	mov eax, [ebp-76]
-	mov ecx, 9
+	sub edx, 40
+	add edx, [ebp-68]
+	mov [ebp-72], edx
+	mov eax, [ebp-72]
+	mov ecx, 4
 	mov [eax], ecx
 	mov eax, 6
 	mov ecx, 1
 	imul eax, ecx
-	mov [ebp-80], eax
-	mov eax, [ebp-80]
+	mov [ebp-76], eax
+	mov eax, [ebp-76]
 	mov ecx, 4
 	imul eax, ecx
-	mov [ebp-84], eax
+	mov [ebp-80], eax
 	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-84]
-	mov [ebp-88], edx
-	mov eax, [ebp-88]
+	sub edx, 40
+	add edx, [ebp-80]
+	mov [ebp-84], edx
+	mov eax, [ebp-84]
 	mov ecx, 7
 	mov [eax], ecx
-	mov eax, [ebp-4]
-	mov ecx, 1
-	sub eax, ecx
+	mov ecx, 0
+	mov [ebp-88], ecx
+	mov eax, [ebp-88]
+	push eax
+	call in_order
+	pop edx
 	mov [ebp-92], eax
-	mov eax, [ebp-92]
-	push eax
 	mov eax, 0
-	push eax
-	call quickSort
-	pop edx
-	pop edx
-	mov [ebp-96], eax
-	mov eax, 0
-	mov ecx, 1
-	imul eax, ecx
-	mov [ebp-100], eax
-	mov eax, [ebp-100]
-	mov ecx, 4
-	imul eax, ecx
-	mov [ebp-104], eax
-	mov edx, ebp
-	sub edx, 28
-	add edx, [ebp-104]
-	mov [ebp-108], edx
-	mov eax, [ebp-108]
-	mov eax, [eax]
-	push eax
-	call printInt
-	pop edx
-	mov [ebp-112], eax
-	add esp, 112
+	add esp, 92
+	pop ebp
+	ret
+	add esp, 92
 	pop ebp
 	ret
 section .data
-intArray TIMES 7 DD 0
+b TIMES 10 DD 0

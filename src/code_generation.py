@@ -10,7 +10,7 @@ fout.write(data)
 gb = 'section .data\n'
 
 root, symbol_table = three_addr_code_generation.main()
-print symbol_table
+# print symbol_table
 
 def get_argc_symbol_table(variable,scope_name):
   for hash_table in symbol_table:
@@ -206,9 +206,9 @@ class BinOp():
     if operand == '^':
       data = data + '\txor eax, ecx\n'
     if operand == '&&':
-      data = data + '\tmovzx eax, al'+'\n'
+      data = data + '\tmovzx eax, dl'+'\n'
     if operand == '||':
-      data = data + '\tmovzx eax, al'+'\n'
+      data = data + '\tmovzx eax, dl'+'\n'
 
     data = data + '\tmov '+destination+', eax'+'\n'
 
@@ -491,12 +491,11 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Compare(arg2,add2,'0','')
     Jump(E_next,"je")
 
-    data = data + "\tmov eax, 1"+'\n'
+    data = data + "\tmov edx, 1"+'\n'
     Jump(E_true,"jmp")
 
     data = data + str(E_next) + '\n'
-    data = data + "\tmov eax, 0"+'\n'
-
+    data = data + "\tmov edx, 0"+'\n'
     data = data + str(E_true) + '\n'
     BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
 
@@ -515,12 +514,11 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     Jump(E_false,"jne")
     Compare(arg2,add2,'0','')
     Jump(E_true,"je")
-
     data = data + str(E_false) + '\n'
-    data = data + "\tmov eax, 1"+'\n'
+    data = data + "\tmov edx, 1"+'\n'
     Jump(E_next,"jmp")
     data = data + str(E_true) + '\n'
-    data = data + "\tmov eax, 0"+'\n'
+    data = data + "\tmov edx, 0"+'\n'
     data = data + str(E_next) + '\n'
 
     BinOp(add,str(arg1),add1,ast_node.children[2].value,str(arg2),add2)
