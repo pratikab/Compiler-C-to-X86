@@ -8,7 +8,7 @@ with open ("../test/lib.s", 'r') as myfile:
 fout.write(data)
 
 gb = 'section .data\n'
-
+hi = []
 root, symbol_table = three_addr_code_generation.main()
 # print symbol_table
 
@@ -409,9 +409,10 @@ def traverse_tree(ast_node, nextlist ,breaklist):
 
     data = data + str(E_next) + '\n'
   elif ast_node.name == 'VarDecl':
-    global gb
+    global gb,hi
     if ast_node.scope_name == 's0':
       gb = gb + str(ast_node.value)+' TIMES '+str(get_size_symbol_table(ast_node.value,'s0')/4)+' DD 0\n'
+      hi.append(ast_node.value)
 
   elif ast_node.name == 'VarDecl and Initialise':
     add2 = get_offset_symbol_table(ast_node.children[0].value,ast_node.scope_name)
@@ -592,7 +593,8 @@ def traverse_tree(ast_node, nextlist ,breaklist):
     BinOp(add1,'',arg2, '*',str(p),'')
     f = get_offset_symbol_table(ast_node.value,ast_node.scope_name)
     f = f.split('-')[1].split(']')[0]
-    if ast_node.scope_name != 's0':
+    # print hi
+    if ast_node.value not in hi:
       data = data + '\tmov edx, ebp\n'
       data = data + '\tsub edx, '+ f +'\n'
     else:

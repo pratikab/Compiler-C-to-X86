@@ -29,7 +29,6 @@ while((arr[i]<=arr[pivot])&&(i<high))
    }
 
   }
-printInt(pivot);printInt(j);
   temp=arr[pivot];
   arr[pivot]=arr[j];
   arr[j]=temp;
@@ -45,13 +44,13 @@ int main()
 {
 int  n = 4,i;
  
- 	arr[0] = 1;
- 	arr[1] = 2;
-	arr[2] = 4;
-	arr[3] = 3;
+ 	arr[0] = 4;
+ 	arr[1] = 1;
+	arr[2] = 3;
+	arr[3] = 2;
 int p = n-1;
- quick_sort(1,p);
-for(i = 1;i<n;i++){
+ quick_sort(0,p);
+for(i = 0;i<n;i++){
 //printf("%d",arr[i]);
 printInt(arr[i]);
 }
