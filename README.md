@@ -14,6 +14,14 @@ For generating parse tree on test example
 * ```python2 cparser.py ../test/<filename> <graph_name.png>```
 Graph will be generated in the test directory
 
+
+For generating .S files for given .C file
+* ```cd <project-top>/test```
+* ```python2 ../src/code_generation.py <filename>```
+
+Output files named a.S will be generated. Which can be further used by assembler to generate .out binary file.
+* ```./run.sh```
+
 Credits
 -------
 
